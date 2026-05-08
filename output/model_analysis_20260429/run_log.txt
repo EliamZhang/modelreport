@@ -1,0 +1,134 @@
+2026-05-08 21:01:47 | INFO | ==========================================================================================
+2026-05-08 21:01:47 | INFO | Model analysis pipeline started
+2026-05-08 21:01:47 | INFO | Config path: C:\Users\zhangyuliang02\Desktop\model_analysis_project\config\analysis_config_input_sample.py
+2026-05-08 21:01:47 | INFO | Output dir: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429
+2026-05-08 21:01:47 | INFO | Run summary started
+2026-05-08 21:01:47 | INFO | Core settings: base_table=base_sample, primary_key=application_id, datetime_candidates=[sample_datetime, sample_datetime, sample_datime]
+2026-05-08 21:01:47 | INFO | Input table count=5
+2026-05-08 21:01:47 | INFO | Input table config: table=base_sample, enabled=True, optional=False, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\main_analysis_model.csv, description=base sample with primary model score
+2026-05-08 21:01:47 | INFO | Input table config: table=customer_profile, enabled=True, optional=False, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\business_analysis_variable_library.csv, description=business analysis variable library
+2026-05-08 21:01:47 | INFO | Input table config: table=comparison_score, enabled=True, optional=False, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\cross_model_score.csv, description=comparison model score
+2026-05-08 21:01:47 | INFO | Input table config: table=feature_detail, enabled=True, optional=False, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\model_variable_library.csv, description=model variable library
+2026-05-08 21:01:47 | INFO | Input table config: table=txn_industry_features, enabled=True, optional=True, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\occupation_information.csv, description=occupation information
+2026-05-08 21:01:47 | INFO | Model score config count=2
+2026-05-08 21:01:47 | INFO | Model score config: name=primary_model_score, source_table=base_sample, score_field=aus_new_worthiness_bid_3rdmodel_v1_0_20260429, bin_field=primary_model_score_bin, bins=10, output_bin_count=5
+2026-05-08 21:01:47 | INFO | Model score config: name=comparison_model_score, source_table=comparison_score, score_field=aus_new_risk_bid_3rdmodel_v1_0_20251201, bin_field=comparison_model_score_bin, bins=10, output_bin_count=5
+2026-05-08 21:01:47 | INFO | Join config count=4
+2026-05-08 21:01:47 | INFO | Join config: name=customer_profile, enabled=True, source_table=customer_profile, join_key=application_id, how=left, field_cnt=26
+2026-05-08 21:01:47 | INFO | Join config: name=comparison_score, enabled=True, source_table=comparison_score, join_key=application_id, how=left, field_cnt=1
+2026-05-08 21:01:47 | INFO | Join config: name=feature_detail, enabled=True, source_table=feature_detail, join_key=application_id, how=left, field_cnt=0
+2026-05-08 21:01:47 | INFO | Join config: name=txn_industry_features, enabled=True, source_table=txn_industry_features, join_key=application_id, how=left, field_cnt=7
+2026-05-08 21:01:47 | INFO | Analysis config: group_analyses=16, monthly_analyses=5, feature_profile_enabled=True
+2026-05-08 21:01:47 | INFO | Run summary completed
+2026-05-08 21:01:47 | INFO | [1/8] Loading input tables
+2026-05-08 21:01:47 | INFO | Loading table=base_sample, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\main_analysis_model.csv, columns=ALL
+2026-05-08 21:01:47 | INFO | Table load result: table=base_sample, rows=65,178, cols=24, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=65,178, primary_key_duplicate_row_cnt=0
+2026-05-08 21:01:47 | INFO | Table column match: table=base_sample, selected_column_mode=ALL, configured_selected_cnt=ALL, actual_loaded_cnt=24, missing_selected_cnt=0
+2026-05-08 21:01:47 | INFO | Table meta: table=base_sample, optional=False, description=base sample with primary model score
+2026-05-08 21:01:47 | INFO | Loading table=customer_profile, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\business_analysis_variable_library.csv, selected_columns=28
+2026-05-08 21:01:48 | INFO | Table load result: table=customer_profile, rows=65,178, cols=28, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=65,178, primary_key_duplicate_row_cnt=0
+2026-05-08 21:01:48 | INFO | Table column match: table=customer_profile, selected_column_mode=PARTIAL, configured_selected_cnt=28, actual_loaded_cnt=28, missing_selected_cnt=0
+2026-05-08 21:01:48 | INFO | Table meta: table=customer_profile, optional=False, description=business analysis variable library
+2026-05-08 21:01:48 | INFO | Loading table=comparison_score, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\cross_model_score.csv, selected_columns=3
+2026-05-08 21:01:48 | INFO | Table load result: table=comparison_score, rows=64,995, cols=3, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=64,995, primary_key_duplicate_row_cnt=0
+2026-05-08 21:01:48 | INFO | Table column match: table=comparison_score, selected_column_mode=PARTIAL, configured_selected_cnt=3, actual_loaded_cnt=3, missing_selected_cnt=0
+2026-05-08 21:01:48 | INFO | Table meta: table=comparison_score, optional=False, description=comparison model score
+2026-05-08 21:01:48 | INFO | Loading table=feature_detail, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\model_variable_library.csv, selected_columns=108
+2026-05-08 21:01:49 | INFO | Table load result: table=feature_detail, rows=53,555, cols=106, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=53,555, primary_key_duplicate_row_cnt=0
+2026-05-08 21:01:49 | INFO | Table column match: table=feature_detail, selected_column_mode=PARTIAL, configured_selected_cnt=108, actual_loaded_cnt=106, missing_selected_cnt=2
+2026-05-08 21:01:49 | WARNING | Table selected columns missing: table=feature_detail, first_30=[bank_txn_lender_disburse_count, bank_txn_lender_repay_count]
+2026-05-08 21:01:49 | INFO | Table meta: table=feature_detail, optional=False, description=model variable library
+2026-05-08 21:01:49 | INFO | Loading table=txn_industry_features, path=C:\Users\zhangyuliang02\Desktop\model_analysis_project\INPUT\occupation_information.csv, selected_columns=9
+2026-05-08 21:01:49 | INFO | Table load result: table=txn_industry_features, rows=22,620, cols=9, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=22,620, primary_key_duplicate_row_cnt=0
+2026-05-08 21:01:49 | INFO | Table column match: table=txn_industry_features, selected_column_mode=PARTIAL, configured_selected_cnt=9, actual_loaded_cnt=9, missing_selected_cnt=0
+2026-05-08 21:01:49 | INFO | Table meta: table=txn_industry_features, optional=True, description=occupation information
+2026-05-08 21:01:49 | INFO | Loaded tables: base_sample, comparison_score, customer_profile, feature_detail, txn_industry_features
+2026-05-08 21:01:49 | INFO | Base sample key summary: table=base_sample, row_cnt=65,178, unique_application_id_cnt=65,178
+2026-05-08 21:01:49 | INFO | Base overlap summary: base_table=base_sample, table=customer_profile, table_unique_application_id_cnt=65,178, overlap_application_id_cnt=65,178, base_match_rate=100.00%, only_in_source_cnt=0
+2026-05-08 21:01:49 | INFO | Base overlap summary: base_table=base_sample, table=comparison_score, table_unique_application_id_cnt=64,995, overlap_application_id_cnt=64,995, base_match_rate=99.72%, only_in_source_cnt=0
+2026-05-08 21:01:49 | INFO | Base overlap summary: base_table=base_sample, table=feature_detail, table_unique_application_id_cnt=53,555, overlap_application_id_cnt=53,555, base_match_rate=82.17%, only_in_source_cnt=0
+2026-05-08 21:01:49 | INFO | Base overlap summary: base_table=base_sample, table=txn_industry_features, table_unique_application_id_cnt=22,620, overlap_application_id_cnt=22,620, base_match_rate=34.70%, only_in_source_cnt=0
+2026-05-08 21:01:49 | INFO | [2/8] Enriching base sample
+2026-05-08 21:01:49 | INFO | Base sample rows=65,178, cols=24
+2026-05-08 21:01:49 | INFO | Preparing join: name=customer_profile, source_table=customer_profile, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=26, source_rows=65,178, source_cols=28
+2026-05-08 21:01:49 | INFO | Join field check: table=customer_profile, join_key=application_id, configured_field_cnt=26, matched_field_cnt=26, missing_field_cnt=0
+2026-05-08 21:01:49 | WARNING | Join overwrite columns detected: source_table=customer_profile, overlap_cnt=2, columns=['duedate_1m_5', 'duedate_3m_30']
+2026-05-08 21:01:49 | INFO | Join result: source_table=customer_profile, before_rows=65,178, after_rows=65,178, match_application_id_cnt=65,178, unmatched_application_id_cnt=0, match_rate=100.00%, merged_in_field_cnt=26
+2026-05-08 21:01:49 | INFO | Preparing join: name=comparison_score, source_table=comparison_score, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=1, source_rows=64,995, source_cols=3
+2026-05-08 21:01:49 | INFO | Join field check: table=comparison_score, join_key=application_id, configured_field_cnt=1, matched_field_cnt=1, missing_field_cnt=0
+2026-05-08 21:01:50 | INFO | Join result: source_table=comparison_score, before_rows=65,178, after_rows=65,178, match_application_id_cnt=64,995, unmatched_application_id_cnt=183, match_rate=99.72%, merged_in_field_cnt=1
+2026-05-08 21:01:50 | INFO | Preparing join: name=txn_industry_features, source_table=txn_industry_features, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=7, source_rows=22,620, source_cols=9
+2026-05-08 21:01:50 | INFO | Join field check: table=txn_industry_features, join_key=application_id, configured_field_cnt=7, matched_field_cnt=7, missing_field_cnt=0
+2026-05-08 21:01:50 | INFO | Join result: source_table=txn_industry_features, before_rows=65,178, after_rows=65,178, match_application_id_cnt=22,620, unmatched_application_id_cnt=42,558, match_rate=34.70%, merged_in_field_cnt=7
+2026-05-08 21:01:50 | INFO | Base sample prepared: rows=65,178, cols=56, unique_application_id_cnt=65,178
+2026-05-08 21:01:50 | INFO | Model score summary: model=primary_model_score, source_table=base_sample, score_field=aus_new_worthiness_bid_3rdmodel_v1_0_20260429, nonnull_cnt=65,178, missing_cnt=0, min=0.059040, p50=0.252908, max=0.702688
+2026-05-08 21:01:50 | INFO | Model score summary: model=comparison_model_score, source_table=comparison_score, score_field=aus_new_risk_bid_3rdmodel_v1_0_20251201, nonnull_cnt=64,995, missing_cnt=183, min=-1.000000, p50=0.111265, max=0.621035
+2026-05-08 21:01:50 | INFO | [3/8] Applying score binning
+2026-05-08 21:01:50 | INFO | Applied binning: model=primary_model_score, score_field=aus_new_worthiness_bid_3rdmodel_v1_0_20260429, bin_field=primary_model_score_bin, mode=upper_bound, configured_bin_cnt=10, effective_bin_cnt=5, score_nonnull_cnt=65,178, score_missing_cnt=0, bin_null_cnt=0, unknown_cnt=0
+2026-05-08 21:01:50 | INFO | Applied binning: model=comparison_model_score, score_field=aus_new_risk_bid_3rdmodel_v1_0_20251201, bin_field=comparison_model_score_bin, mode=upper_bound, configured_bin_cnt=10, effective_bin_cnt=5, score_nonnull_cnt=64,995, score_missing_cnt=183, bin_null_cnt=292, unknown_cnt=0
+2026-05-08 21:01:50 | INFO | Derived sample month column: source=sample_datetime, target=sample_month, invalid_datetime_cnt=0
+2026-05-08 21:01:50 | INFO | Post score binning sample summary: rows=65,178, cols=58, unique_application_id_cnt=65,178
+2026-05-08 21:01:50 | INFO | Model score summary: model=primary_model_score, source_table=base_sample, score_field=aus_new_worthiness_bid_3rdmodel_v1_0_20260429, nonnull_cnt=65,178, missing_cnt=0, min=0.059040, p50=0.252908, max=0.702688
+2026-05-08 21:01:50 | INFO | Model bin summary: model=primary_model_score, bin_field=primary_model_score_bin, nonnull_cnt=65,178, missing_cnt=0
+2026-05-08 21:01:50 | INFO | Model bin distribution[primary_model_score]: column=primary_model_score_bin, distinct=5, top_10=4=13,456, 3=13,444, 2=13,246, 5=13,178, 1=11,854
+2026-05-08 21:01:50 | INFO | Model score summary: model=comparison_model_score, source_table=comparison_score, score_field=aus_new_risk_bid_3rdmodel_v1_0_20251201, nonnull_cnt=64,995, missing_cnt=183, min=-1.000000, p50=0.111265, max=0.621035
+2026-05-08 21:01:50 | INFO | Model bin summary: model=comparison_model_score, bin_field=comparison_model_score_bin, nonnull_cnt=64,886, missing_cnt=292
+2026-05-08 21:01:50 | INFO | Model bin distribution[comparison_model_score]: column=comparison_model_score_bin, distinct=5, top_10=5=13,594, 4=13,248, 3=13,021, 2=12,746, 1=12,277, <NA>=292
+2026-05-08 21:01:50 | INFO | Sample month distribution: column=sample_month, distinct=28, top_10=2025-12=3,394, 2026-03=3,334, 2026-04=3,058, 2024-03=2,978, 2024-04=2,876, 2024-01=2,872, 2026-01=2,775, 2025-10=2,745, 2025-11=2,669, 2024-05=2,528
+2026-05-08 21:01:50 | INFO | [4/8] Building conversion labels and filters
+2026-05-08 21:01:50 | INFO | Built conversion labels: completed_cnt=65,178, approved_cnt=65,178, auto_approved_cnt=26,902, manual_approved_cnt=38,276, deal_cnt=65,178
+2026-05-08 21:01:50 | INFO | Created deal amount field: deal_total_amount, valid_deal_amount_cnt=65,178, deal_status_match_cnt=65,178
+2026-05-08 21:01:50 | INFO | Conversion stage distribution: column=conversion_stage, distinct=1, top_10=approved_and_deal=65,178
+2026-05-08 21:01:50 | INFO | Deal flag summary: column=is_deal_application, positive_cnt=65,178
+2026-05-08 21:01:50 | INFO | [5/8] Building data quality summary
+2026-05-08 21:01:50 | INFO | Final enriched sample summary: rows=65,178, cols=65, unique_application_id_cnt=65,178
+2026-05-08 21:01:50 | INFO | Model score summary: model=primary_model_score, source_table=base_sample, score_field=aus_new_worthiness_bid_3rdmodel_v1_0_20260429, nonnull_cnt=65,178, missing_cnt=0, min=0.059040, p50=0.252908, max=0.702688
+2026-05-08 21:01:50 | INFO | Model bin summary: model=primary_model_score, bin_field=primary_model_score_bin, nonnull_cnt=65,178, missing_cnt=0
+2026-05-08 21:01:50 | INFO | Model bin distribution[primary_model_score]: column=primary_model_score_bin, distinct=5, top_10=4=13,456, 3=13,444, 2=13,246, 5=13,178, 1=11,854
+2026-05-08 21:01:50 | INFO | Model score summary: model=comparison_model_score, source_table=comparison_score, score_field=aus_new_risk_bid_3rdmodel_v1_0_20251201, nonnull_cnt=64,995, missing_cnt=183, min=-1.000000, p50=0.111265, max=0.621035
+2026-05-08 21:01:50 | INFO | Model bin summary: model=comparison_model_score, bin_field=comparison_model_score_bin, nonnull_cnt=64,886, missing_cnt=292
+2026-05-08 21:01:50 | INFO | Model bin distribution[comparison_model_score]: column=comparison_model_score_bin, distinct=5, top_10=5=13,594, 4=13,248, 3=13,021, 2=12,746, 1=12,277, <NA>=292
+2026-05-08 21:01:50 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\00_data_quality_summary.csv, rows=70, cols=4
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\01_enriched_base_sample.csv, rows=65,178, cols=65
+2026-05-08 21:01:53 | INFO | [6/8] Running group and cross analyses
+2026-05-08 21:01:53 | INFO | Running analysis=primary_model_bin_performance, group_by=['primary_model_score_bin']
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\02_primary_model_bin_performance.csv, rows=5, cols=41
+2026-05-08 21:01:53 | INFO | Analysis done=primary_model_bin_performance, rows=5, output_file=02_primary_model_bin_performance.csv
+2026-05-08 21:01:53 | INFO | Running analysis=conversion_by_primary_model_bin, group_by=['primary_model_score_bin']
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\03_conversion_by_primary_model_bin.csv, rows=5, cols=16
+2026-05-08 21:01:53 | INFO | Analysis done=conversion_by_primary_model_bin, rows=5, output_file=03_conversion_by_primary_model_bin.csv
+2026-05-08 21:01:53 | INFO | Running analysis=primary_model_bin_x_conversion_stage, group_by=['primary_model_score_bin', 'conversion_stage']
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\04_primary_model_bin_x_conversion_stage.csv, rows=5, cols=42
+2026-05-08 21:01:53 | INFO | Analysis done=primary_model_bin_x_conversion_stage, rows=5, output_file=04_primary_model_bin_x_conversion_stage.csv
+2026-05-08 21:01:53 | INFO | Running analysis=primary_vs_comparison_model_bin, group_by=['primary_model_score_bin', 'comparison_model_score_bin']
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\05_primary_vs_comparison_model_bin.csv, rows=30, cols=42
+2026-05-08 21:01:53 | INFO | Analysis done=primary_vs_comparison_model_bin, rows=30, output_file=05_primary_vs_comparison_model_bin.csv
+2026-05-08 21:01:53 | INFO | Running analysis=primary_model_bin_x_last_step, group_by=['primary_model_score_bin', 'last_step']
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\08_primary_model_bin_x_last_step.csv, rows=11, cols=42
+2026-05-08 21:01:53 | INFO | Analysis done=primary_model_bin_x_last_step, rows=11, output_file=08_primary_model_bin_x_last_step.csv
+2026-05-08 21:01:53 | INFO | Running analysis=primary_model_bin_x_loan_tag, group_by=['primary_model_score_bin', 'loan_tag']
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\09_primary_model_bin_x_loan_tag.csv, rows=10, cols=42
+2026-05-08 21:01:53 | INFO | Analysis done=primary_model_bin_x_loan_tag, rows=10, output_file=09_primary_model_bin_x_loan_tag.csv
+2026-05-08 21:01:53 | INFO | Running analysis=primary_model_bin_x_requested_loan_tag, group_by=['primary_model_score_bin', 'requested_loan_tag']
+2026-05-08 21:01:53 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\10_primary_model_bin_x_requested_loan_tag.csv, rows=10, cols=42
+2026-05-08 21:01:53 | INFO | Analysis done=primary_model_bin_x_requested_loan_tag, rows=10, output_file=10_primary_model_bin_x_requested_loan_tag.csv
+2026-05-08 21:01:53 | INFO | Running analysis=primary_model_bin_x_state, group_by=['primary_model_score_bin', 'state']
+2026-05-08 21:01:54 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\11_primary_model_bin_x_state.csv, rows=44, cols=42
+2026-05-08 21:01:54 | INFO | Analysis done=primary_model_bin_x_state, rows=44, output_file=11_primary_model_bin_x_state.csv
+2026-05-08 21:01:54 | INFO | Running analysis=primary_model_bin_x_suburb, group_by=['primary_model_score_bin', 'suburb']
+2026-05-08 21:02:56 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\12_primary_model_bin_x_suburb.csv, rows=19,527, cols=42
+2026-05-08 21:02:56 | INFO | Analysis done=primary_model_bin_x_suburb, rows=19,527, output_file=12_primary_model_bin_x_suburb.csv
+2026-05-08 21:02:56 | INFO | Running analysis=primary_model_bin_x_family_type, group_by=['primary_model_score_bin', 'family_type']
+2026-05-08 21:02:56 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\13_primary_model_bin_x_family_type.csv, rows=10, cols=42
+2026-05-08 21:02:56 | INFO | Analysis done=primary_model_bin_x_family_type, rows=10, output_file=13_primary_model_bin_x_family_type.csv
+2026-05-08 21:02:56 | INFO | Running analysis=primary_model_bin_x_attributed_category, group_by=['primary_model_score_bin', 'attributed_category']
+2026-05-08 21:02:57 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\14_primary_model_bin_x_attributed_category.csv, rows=45, cols=42
+2026-05-08 21:02:57 | INFO | Analysis done=primary_model_bin_x_attributed_category, rows=45, output_file=14_primary_model_bin_x_attributed_category.csv
+2026-05-08 21:02:57 | INFO | Running analysis=primary_model_bin_x_age, group_by=['primary_model_score_bin', 'age']
+2026-05-08 21:02:58 | INFO | Analysis done=primary_model_bin_x_age, rows=315, merged_output_file=15_primary_model_bin_x_discrete_numeric.csv
+2026-05-08 21:02:58 | INFO | Running analysis=primary_model_bin_x_dependents, group_by=['primary_model_score_bin', 'dependents']
+2026-05-08 21:02:59 | INFO | Analysis done=primary_model_bin_x_dependents, rows=45, merged_output_file=15_primary_model_bin_x_discrete_numeric.csv
+2026-05-08 21:02:59 | INFO | Running analysis=primary_model_bin_x_primary_industry, group_by=['primary_model_score_bin', 'bank_txn_industry_primary_industry']
+2026-05-08 21:03:00 | INFO | Wrote output: C:\Users\zhangyuliang02\Desktop\model_analysis_project\output\model_analysis_20260429\17_primary_model_bin_x_primary_industry.csv, rows=90, cols=42
+2026-05-08 21:03:00 | INFO | Analysis done=primary_model_bin_x_primary_industry, rows=90, output_file=17_primary_model_bin_x_primary_industry.csv
+2026-05-08 21:03:00 | INFO | Running analysis=primary_model_bin_x_primary_employer, group_by=['primary_model_score_bin', 'bank_txn_industry_primary_employer']
