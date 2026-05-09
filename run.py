@@ -8,14 +8,16 @@ from src.aggregation import enrich_base_sample
 from src.binning import apply_score_binning
 from src.config_loader import resolve_config_paths
 from src.data_loader import load_input_tables
+from src.discrete_variable_distribution import build_and_export_discrete_variable_distribution
 from src.label_builder import apply_deal_amount_filter, build_conversion_labels
 from src.logger import setup_logger
 from src.monthly_analysis import add_sample_month
 from src.workbook import export_cross_model_bin_user_profile_excel, write_cross_model_workbook
 
 
-OUTPUT_FILE_NAME = "cross_model_bin_pivot_rate_only.xlsx"
-USER_PROFILE_OUTPUT_FILE_NAME = "cross_model_bin_pivot_user_profile.xlsx"
+FEATURE_MEAN_PROFILE_OUTPUT_FILE_NAME = "model_bin_feature_mean_profile.xlsx"
+USER_PROFILE_OUTPUT_FILE_NAME = "model_bin_user_profile_pivot.xlsx"
+RISK_PERFORMANCE_OUTPUT_FILE_NAME = "model_bin_risk_performance_pivot.xlsx"
 
 
 def prepare_output_dir(cfg: dict) -> Path:
@@ -39,12 +41,17 @@ def prepare_output_dir(cfg: dict) -> Path:
 def main() -> None:
     cfg = resolve_config_paths(CONFIG)
     out_dir = prepare_output_dir(cfg)
-    output_path = out_dir / OUTPUT_FILE_NAME
+    risk_performance_output_path = out_dir / RISK_PERFORMANCE_OUTPUT_FILE_NAME
     user_profile_output_path = out_dir / USER_PROFILE_OUTPUT_FILE_NAME
     logger = setup_logger(level=cfg["project"].get("log_level", "INFO"))
 
-    logger.info("Cross model pivot workbook generation started")
-    logger.info(f"Output path: {output_path}")
+    logger.info("Model bin workbook generation started")
+    logger.info(
+        "Output files in order: "
+        f"1={FEATURE_MEAN_PROFILE_OUTPUT_FILE_NAME}, "
+        f"2={USER_PROFILE_OUTPUT_FILE_NAME}, "
+        f"3={RISK_PERFORMANCE_OUTPUT_FILE_NAME}"
+    )
 
     tables = load_input_tables(cfg, logger)
     enriched = enrich_base_sample(tables, cfg, logger)
@@ -53,13 +60,12 @@ def main() -> None:
     enriched = build_conversion_labels(enriched, cfg, logger)
     enriched = apply_deal_amount_filter(enriched, cfg, logger)
 
-    write_cross_model_workbook(
-        output_path=output_path,
+    build_and_export_discrete_variable_distribution(
         df=enriched,
         cfg=cfg,
-        row_bin="primary_model_score_bin",
-        column_bin="comparison_model_score_bin",
         logger=logger,
+        primary_bin_col="primary_model_score_bin",
+        comparison_bin_col="comparison_model_score_bin",
     )
     export_cross_model_bin_user_profile_excel(
         df=enriched,
@@ -69,7 +75,15 @@ def main() -> None:
         column_bin="comparison_model_score_bin",
         logger=logger,
     )
-    logger.info("Cross model pivot workbook generation finished")
+    write_cross_model_workbook(
+        output_path=risk_performance_output_path,
+        df=enriched,
+        cfg=cfg,
+        row_bin="primary_model_score_bin",
+        column_bin="comparison_model_score_bin",
+        logger=logger,
+    )
+    logger.info("Model bin workbook generation finished")
 
 
 if __name__ == "__main__":
