@@ -1,40 +1,25 @@
-﻿CONFIG = {
+CONFIG = {
     "project": {
         "root_dir": ".",
         "output_dir": "./output/model_analysis_20260429",
-        "encoding": "utf-8-sig",
-    },
-    "runtime": {
         "log_level": "INFO",
-        "fail_on_missing_required_columns": False,
-        "overwrite_output": True,
-        "pandas_read_csv_kwargs": {
-            "low_memory": False,
-        },
     },
     "input_tables": {
-        "base_sample": {
-            "path": "./INPUT/main_analysis_model.csv",
-            "description": "base sample with primary model score",
-        },
-        "customer_profile": {
-            "path": "./INPUT/business_analysis_variable_library.csv",
-            "description": "business analysis variable library",
-        },
-        "comparison_score": {
-            "path": "./INPUT/cross_model_score.csv",
-            "description": "comparison model score",
-        },
+        "base_sample": {"path": "./INPUT/main_analysis_model.csv"},
+        "customer_profile": {"path": "./INPUT/business_analysis_variable_library.csv"},
+        "comparison_score": {"path": "./INPUT/cross_model_score.csv"},
     },
     "keys": {
         "primary_key": "application_id",
         "user_key": "user_id",
         "datetime_key": "sample_datetime",
-        "datetime_aliases": ["sample_datetime", "sample_datime"],
+        "datetime_aliases": ["sample_datime"],
+    },
+    "analysis": {
+        "base_table": "base_sample",
+        "sample_month_field": "sample_month",
     },
     "score_binning": {
-        "unknown_label": None,
-        "null_label": None,
         "binning_mode": "upper_bound",
         "scores": [
             {
@@ -43,27 +28,25 @@
                 "score_field": "aus_new_worthiness_bid_3rdmodel_v1_0_20260429",
                 "bin_field": "primary_model_score_bin",
                 "bin_label_type": "int",
-                "null_label": None,
                 "null_values": [-1],
                 "else_label": 100,
-                # source_bin_indexes are 1-based indexes of the configured source bins.
                 "bin_groups": [
                     {"label": 1, "source_bin_indexes": [1, 2, 3, 4]},
                     {"label": 2, "source_bin_indexes": [5, 6, 7, 8]},
                     {"label": 3, "source_bin_indexes": [9, 10]},
                 ],
-"bins": [
-    {"label": 10, "min_score": 0.050829, "max_score": 0.134913},
-    {"label": 20, "min_score": 0.134927, "max_score": 0.166178},
-    {"label": 30, "min_score": 0.166214, "max_score": 0.193127},
-    {"label": 40, "min_score": 0.193129, "max_score": 0.221320},
-    {"label": 50, "min_score": 0.221326, "max_score": 0.250147},
-    {"label": 60, "min_score": 0.250221, "max_score": 0.281253},
-    {"label": 70, "min_score": 0.281266, "max_score": 0.318016},
-    {"label": 80, "min_score": 0.318031, "max_score": 0.364808},
-    {"label": 90, "min_score": 0.364830, "max_score": 0.432379},
-    {"label": 100, "min_score": 0.432389, "max_score": 0.705449}
-]
+                "bins": [
+                    {"label": 10, "min_score": 0.050829, "max_score": 0.134913},
+                    {"label": 20, "min_score": 0.134927, "max_score": 0.166178},
+                    {"label": 30, "min_score": 0.166214, "max_score": 0.193127},
+                    {"label": 40, "min_score": 0.193129, "max_score": 0.221320},
+                    {"label": 50, "min_score": 0.221326, "max_score": 0.250147},
+                    {"label": 60, "min_score": 0.250221, "max_score": 0.281253},
+                    {"label": 70, "min_score": 0.281266, "max_score": 0.318016},
+                    {"label": 80, "min_score": 0.318031, "max_score": 0.364808},
+                    {"label": 90, "min_score": 0.364830, "max_score": 0.432379},
+                    {"label": 100, "min_score": 0.432389, "max_score": 0.705449},
+                ],
             },
             {
                 "name": "comparison_model_score",
@@ -71,10 +54,8 @@
                 "score_field": "aus_new_risk_bid_3rdmodel_v1_0_20251201",
                 "bin_field": "comparison_model_score_bin",
                 "bin_label_type": "int",
-                "null_label": None,
                 "null_values": [-1],
                 "else_label": 100,
-                # source_bin_indexes are 1-based indexes of the configured source bins.
                 "bin_groups": [
                     {"label": 1, "source_bin_indexes": [1, 2, 3, 4]},
                     {"label": 2, "source_bin_indexes": [5, 6, 7, 8]},
@@ -97,16 +78,9 @@
     },
     "joins": {
         "customer_profile": {
-            "enabled": True,
             "source_table": "customer_profile",
             "join_key": "application_id",
-            "how": "left",
-            "deduplicate_key": True,
             "fields": [
-                "last_step",
-                "loan_tag",
-                "age",
-                "base_probability",
                 "PTI",
                 "principal",
                 "estimate_principal_remaining_mob3",
@@ -117,12 +91,6 @@
                 "net_surplus",
                 "total_income",
                 "requested_loan_amount",
-                "requested_loan_tag",
-                "state",
-                "suburb",
-                "family_type",
-                "dependents",
-                "attributed_category",
                 "total_amount",
                 "duedate_1m_5",
                 "duedate_3m_30",
@@ -132,14 +100,9 @@
             ],
         },
         "comparison_score": {
-            "enabled": True,
             "source_table": "comparison_score",
             "join_key": "application_id",
-            "how": "left",
-            "deduplicate_key": True,
-            "fields": [
-                "aus_new_risk_bid_3rdmodel_v1_0_20251201",
-            ],
+            "fields": ["aus_new_risk_bid_3rdmodel_v1_0_20251201"],
         },
     },
     "amount_rules": {
@@ -150,22 +113,11 @@
     },
     "risk_metrics": {
         "label_metrics": [
-            {
-                "field": "duedate_3m_30",
-                "prefix": "duedate_3m_30",
-                "bad_values": [1],
-                "good_values": [0],
-            },
-            {
-                "field": "duedate_1m_5",
-                "prefix": "duedate_1m_5",
-                "bad_values": [1],
-                "good_values": [0],
-            },
+            {"field": "duedate_3m_30", "prefix": "duedate_3m_30", "bad_values": [1], "good_values": [0]},
+            {"field": "duedate_1m_5", "prefix": "duedate_1m_5", "bad_values": [1], "good_values": [0]},
         ],
         "amount_overdue_metrics": [
             {
-                "name": "duedate_3m_30_amount_overdue_rate",
                 "prefix": "duedate_3m_30_amount",
                 "dpd_field": "dpd_days_mob3",
                 "overdue_threshold": 30,
@@ -173,7 +125,6 @@
                 "denominator_field": "principal",
             },
             {
-                "name": "duedate_1m_5_amount_overdue_rate",
                 "prefix": "duedate_1m_5_amount",
                 "dpd_field": "dpd_days_mob1",
                 "overdue_threshold": 5,
@@ -191,7 +142,6 @@
         {"source_field": "total_income", "output_field": "avg_total_income"},
     ],
     "conversion": {
-        "enabled": True,
         "application_status_field": "application_status",
         "assessment_status_field": "assessment_status",
         "deal_status_field": "status",
@@ -209,12 +159,4 @@
             "conversion_stage": "conversion_stage",
         },
     },
-    "analysis": {
-        "base_table": "base_sample",
-        "sample_month_field": "sample_month",
-    },
-    "outputs": {
-        "cross_model_pivot_workbook": "cross_model_bin_pivot_rate_only.xlsx",
-    },
 }
-

@@ -9,9 +9,6 @@ import pandas as pd
 def build_conversion_labels(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.DataFrame:
     """Build configurable conversion flags and conversion stage."""
     conv = cfg.get("conversion", {})
-    if not conv.get("enabled", True):
-        return df
-
     out = df.copy()
     app_status_col = conv.get("application_status_field", "application_status")
     assess_col = conv.get("assessment_status_field", "assessment_status")
