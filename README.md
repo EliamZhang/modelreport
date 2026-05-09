@@ -1,9 +1,10 @@
 # Model Analysis Project
 
-This project generates one workbook:
+This project generates two workbooks:
 
 ```text
 output/model_analysis_20260429/cross_model_bin_pivot_rate_only.xlsx
+output/model_analysis_20260429/cross_model_bin_pivot_user_profile.xlsx
 ```
 
 Run:
@@ -12,7 +13,7 @@ Run:
 python run.py
 ```
 
-The run always clears `output/model_analysis_20260429` first, then writes only `cross_model_bin_pivot_rate_only.xlsx`.
+The run always clears `output/model_analysis_20260429` first, writes the business analysis workbook, then writes the user profile workbook.
 
 ## Manual Bin Groups
 

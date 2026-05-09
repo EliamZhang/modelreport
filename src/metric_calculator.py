@@ -20,6 +20,13 @@ def _to_numeric_series(df: pd.DataFrame, col: str) -> pd.Series:
     return pd.to_numeric(df[col], errors="coerce")
 
 
+def _to_category_series(df: pd.DataFrame, col: str, missing_label: str = "Missing") -> pd.Series:
+    if col not in df.columns:
+        return pd.Series(missing_label, index=df.index, dtype="object")
+    values = df[col].astype("string").str.strip()
+    return values.mask(values.isna() | values.eq(""), missing_label).astype("object")
+
+
 def _calc_one_group(g: pd.DataFrame, total_rows: int, cfg: dict[str, Any], metric_groups: set[str] | None = None) -> dict[str, Any]:
     metric_groups = metric_groups or {"sample", "risk", "amount_risk", "mean", "conversion"}
     row: dict[str, Any] = {}
@@ -123,5 +130,152 @@ def calculate_group_metrics(
         row = {col: val for col, val in zip(group_cols, keys)}
         row.update(_calc_one_group(g, total_rows, cfg, metric_groups))
         records.append(row)
+
+    return pd.DataFrame(records)
+
+
+def _numeric_cross_metric_configs(cfg: dict[str, Any]) -> list[dict[str, Any]]:
+    return cfg.get("user_profile_metrics", {}).get("numeric_cross_metrics", [])
+
+
+def _calc_one_user_profile_numeric_group(g: pd.DataFrame, cfg: dict[str, Any]) -> dict[str, Any]:
+    row: dict[str, Any] = {"sample_cnt": len(g)}
+
+    for m in _numeric_cross_metric_configs(cfg):
+        agg = str(m.get("agg", "mean")).lower()
+        src = m.get("source_field")
+        out = m.get("output_field", f"avg_{src}")
+        if not src:
+            row[out] = None
+        elif agg == "mean":
+            row[out] = float(_to_numeric_series(g, src).mean())
+        else:
+            row[out] = None
+
+    return row
+
+
+def calculate_user_profile_numeric_metrics(
+    df: pd.DataFrame,
+    group_cols: list[str],
+    cfg: dict[str, Any],
+) -> pd.DataFrame:
+    """Calculate numeric user-profile metrics by group columns from raw sample rows."""
+    missing_group_cols = [c for c in group_cols if c not in df.columns]
+    if missing_group_cols:
+        raise ValueError(f"Group columns missing: {missing_group_cols}")
+
+    records: list[dict[str, Any]] = []
+    if not group_cols:
+        records.append(_calc_one_user_profile_numeric_group(df, cfg))
+        return pd.DataFrame(records)
+
+    grouped = df.groupby(group_cols, dropna=False, sort=True)
+    for keys, g in grouped:
+        if not isinstance(keys, tuple):
+            keys = (keys,)
+        row = {col: val for col, val in zip(group_cols, keys)}
+        row.update(_calc_one_user_profile_numeric_group(g, cfg))
+        records.append(row)
+
+    return pd.DataFrame(records)
+
+
+def _global_category_order(
+    df: pd.DataFrame,
+    field: str,
+    top_n: int,
+    missing_label: str,
+    others_label: str,
+) -> tuple[list[str], set[str]]:
+    values = _to_category_series(df, field, missing_label)
+    counts = values.value_counts(dropna=False)
+    ranked = sorted(counts.items(), key=lambda item: (-int(item[1]), str(item[0])))
+    top_values = [str(value) for value, _ in ranked[:top_n]]
+    top_set = set(top_values)
+    if len(ranked) > top_n:
+        top_values.append(others_label)
+    return top_values, top_set
+
+
+def calculate_user_profile_category_distribution(
+    df: pd.DataFrame,
+    row_bin: str,
+    metric_cfg: dict[str, Any],
+    bin_values: list[Any],
+) -> pd.DataFrame:
+    """Calculate primary-bin category distribution from raw sample rows."""
+    if row_bin not in df.columns:
+        raise ValueError(f"Group column missing: {row_bin}")
+
+    field = metric_cfg.get("source_field")
+    if not field:
+        return pd.DataFrame()
+    if field not in df.columns:
+        return pd.DataFrame()
+
+    top_n = int(metric_cfg.get("top_n", 20))
+    missing_label = metric_cfg.get("missing_label", "Missing")
+    others_label = metric_cfg.get("others_label", "Others")
+    category_order, top_set = _global_category_order(df, field, top_n, missing_label, others_label)
+
+    working = df[[row_bin, field]].copy()
+    values = _to_category_series(working, field, missing_label).astype(str)
+    if others_label in category_order:
+        values = values.where(values.isin(top_set), others_label)
+    working["_category_value"] = values
+
+    records: list[dict[str, Any]] = []
+    for bin_value in bin_values:
+        group = working[working[row_bin].astype(str) == str(bin_value)]
+        sample_cnt = len(group)
+        counts = group["_category_value"].value_counts(dropna=False).to_dict()
+        for category_value in category_order:
+            category_cnt = int(counts.get(category_value, 0))
+            records.append(
+                {
+                    "profile_field": field,
+                    "primary_model_score_bin": bin_value,
+                    "category_value": category_value,
+                    "sample_cnt": sample_cnt,
+                    "category_cnt": category_cnt,
+                    "category_pct": safe_divide(category_cnt, sample_cnt),
+                }
+            )
+        records.append(
+            {
+                "profile_field": field,
+                "primary_model_score_bin": bin_value,
+                "category_value": "Total",
+                "sample_cnt": sample_cnt,
+                "category_cnt": sample_cnt,
+                "category_pct": safe_divide(sample_cnt, sample_cnt),
+            }
+        )
+
+    sample_cnt = len(working)
+    counts = working["_category_value"].value_counts(dropna=False).to_dict()
+    for category_value in category_order:
+        category_cnt = int(counts.get(category_value, 0))
+        records.append(
+            {
+                "profile_field": field,
+                "primary_model_score_bin": "Total",
+                "category_value": category_value,
+                "sample_cnt": sample_cnt,
+                "category_cnt": category_cnt,
+                "category_pct": safe_divide(category_cnt, sample_cnt),
+            }
+        )
+    records.append(
+        {
+            "profile_field": field,
+            "primary_model_score_bin": "Total",
+            "category_value": "Total",
+            "sample_cnt": sample_cnt,
+            "category_cnt": sample_cnt,
+            "category_pct": safe_divide(sample_cnt, sample_cnt),
+        }
+    )
 
     return pd.DataFrame(records)
