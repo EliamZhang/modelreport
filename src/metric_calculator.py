@@ -63,7 +63,7 @@ def _calc_one_group(g: pd.DataFrame, total_rows: int, cfg: dict[str, Any], metri
             out = m.get("output_field", f"avg_{src}")
             row[out] = float(_to_numeric_series(g, src).mean()) if src else None
 
-    if "conversion" in metric_groups and cfg.get("conversion", {}).get("enabled", True):
+    if "conversion" in metric_groups:
         fields = cfg.get("conversion", {}).get("output_fields", {})
         completed_col = fields.get("completed_flag", "is_completed_application")
         approved_col = fields.get("approved_flag", "is_approved_application")
