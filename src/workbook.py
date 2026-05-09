@@ -562,33 +562,61 @@ def _write_dataframe(ws, df: pd.DataFrame, start_row: int) -> tuple[int, int]:
             )
     return len(rows), len(df.columns)
 
+def _style_metric_title(cell) -> None:
+    cell.font = Font(bold=True, size=12, color="000000")
+    cell.alignment = Alignment(horizontal="left", vertical="center")
+
 
 def _style_table(ws, start_row: int, row_count: int, col_count: int) -> None:
-    header_fill = PatternFill("solid", fgColor="D9EAF7")
-    total_fill = PatternFill("solid", fgColor="E2F0D9")
+    # 咨询风配色
+    header_fill = PatternFill("solid", fgColor="1F4E79")        # 深蓝灰：主表头
+    header_font = Font(bold=True, color="FFFFFF")              # 白色加粗
+
+    total_fill = PatternFill("solid", fgColor="F3F6F8")        # 高级浅灰：Total行/列
+    total_corner_fill = PatternFill("solid", fgColor="E2F0D9") # 浅绿：Total交叉格
+
+    body_font = Font(color="333333")                           # 正文深灰
+    total_font = Font(bold=True, color="000000")               # Total加粗黑色
+
     border = Border(
         left=Side(style="thin", color="D9D9D9"),
         right=Side(style="thin", color="D9D9D9"),
         top=Side(style="thin", color="D9D9D9"),
         bottom=Side(style="thin", color="D9D9D9"),
     )
+
     end_row = start_row + row_count - 1
 
+    # 表头行
     for col in range(1, col_count + 1):
         cell = ws.cell(row=start_row, column=col)
         cell.fill = header_fill
-        cell.font = Font(bold=True)
-        cell.alignment = Alignment(horizontal="center")
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center")
         cell.border = border
 
+    # 数据区 + Total样式
     for row in range(start_row + 1, end_row + 1):
         is_total_row = ws.cell(row=row, column=1).value == "Total"
+
         for col in range(1, col_count + 1):
             cell = ws.cell(row=row, column=col)
+            header_value = ws.cell(row=start_row, column=col).value
+            is_total_col = header_value == "Total"
+
             cell.border = border
-            cell.alignment = Alignment(horizontal="center")
-            if is_total_row or ws.cell(row=start_row, column=col).value == "Total":
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.font = body_font
+
+            # Total行 / Total列：浅灰
+            if is_total_row or is_total_col:
                 cell.fill = total_fill
+                cell.font = total_font
+
+            # Total交叉格：浅绿强调
+            if is_total_row and is_total_col:
+                cell.fill = total_corner_fill
+                cell.font = total_font
 
 
 def _apply_pivot_number_format(ws, start_row: int, row_count: int, col_count: int, metric: str) -> None:
@@ -643,7 +671,8 @@ def write_cross_model_workbook(
         ws = wb.create_sheet(category)
         current_row = 1
         for metric in metrics:
-            ws.cell(row=current_row, column=1, value=metric).font = Font(bold=True, size=12)
+            title_cell = ws.cell(row=current_row, column=1, value=metric)
+            _style_metric_title(title_cell)
             current_row += 1
             pivot = _build_metric_pivot(df, cfg, row_bin, column_bin, metric)
             row_count, col_count = _write_dataframe(ws, pivot, current_row)
@@ -746,7 +775,8 @@ def export_cross_model_bin_user_profile_excel(
             field = metric_cfg["source_field"]
             for suffix, value_col in [("cnt", "category_cnt"), ("pct", "category_pct")]:
                 metric_name = f"{field}_{suffix}"
-                ws.cell(row=current_row, column=1, value=metric_name).font = Font(bold=True, size=12)
+                title_cell = ws.cell(row=current_row, column=1, value=metric_name)
+                _style_metric_title(title_cell)
                 current_row += 1
                 pivot = _build_category_distribution_pivot(
                     distribution,
