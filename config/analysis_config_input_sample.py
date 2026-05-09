@@ -58,9 +58,11 @@ CONFIG = {
                 "null_values": [-1],
                 "else_label": 100,
                 "bin_groups": [
-                    {"label": 1, "source_bin_indexes": [1, 2, 3, 4]},
-                    {"label": 2, "source_bin_indexes": [5, 6, 7, 8]},
-                    {"label": 3, "source_bin_indexes": [9, 10]},
+                    {"label": 1, "source_bin_indexes": [1, 2]},
+                    {"label": 2, "source_bin_indexes": [3, 4]},
+                    {"label": 3, "source_bin_indexes": [5, 6]},
+                    {"label": 4, "source_bin_indexes": [7, 8]},
+                    {"label": 5, "source_bin_indexes": [9, 10]},
                 ],
                 "bins": [
                     {"label": 10, "min_score": 0.020419, "max_score": 0.048577},
