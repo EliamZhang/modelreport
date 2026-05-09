@@ -108,7 +108,7 @@ USER_PROFILE_DISTRIBUTION_SHEET_ORDER = [
     "attributed_category_distribution",
     "occupation_profile_distribution",
 ]
-USER_PROFILE_BIN_ORDER = [1, 2, 3]
+DEFAULT_BIN_ORDER = [1, 2, 3]
 
 
 def _is_missing(value: Any) -> bool:
@@ -146,6 +146,19 @@ def _sort_values(values: list[Any]) -> list[Any]:
     return sorted(unique.values(), key=sort_key)
 
 
+def _configured_bin_order(cfg: dict[str, Any], bin_field: str, fallback: list[Any] | None = None) -> list[Any]:
+    for score_cfg in cfg.get("score_binning", {}).get("scores", []):
+        if score_cfg.get("bin_field") == bin_field:
+            labels = [
+                group.get("label")
+                for group in score_cfg.get("bin_groups", [])
+                if isinstance(group, dict) and group.get("label") is not None
+            ]
+            if labels:
+                return labels
+    return list(fallback or DEFAULT_BIN_ORDER)
+
+
 def _records_by_key(metrics: pd.DataFrame, group_cols: list[str]) -> dict[tuple[str, ...], pd.Series]:
     records: dict[tuple[str, ...], pd.Series] = {}
     for _, row in metrics.iterrows():
@@ -153,28 +166,15 @@ def _records_by_key(metrics: pd.DataFrame, group_cols: list[str]) -> dict[tuple[
     return records
 
 
-def _format_number(value: Any, metric: str) -> str:
-    if _is_missing(value):
-        return ""
-    value = float(value)
-    if metric in COUNT_METRICS:
-        return f"{int(round(value)):,}"
-    if metric in AMOUNT_METRICS:
-        return f"{value:,.2f}"
-    if metric in FOUR_DECIMAL_METRICS:
-        return f"{value:.4f}"
-    if metric.startswith("avg_"):
-        return f"{value:,.2f}"
-    return f"{value:,.4f}"
-
-
-def _format_cell(record: pd.Series | None, metric: str) -> str:
+def _cell_value(record: pd.Series | None, metric: str) -> Any:
     if record is None or metric not in record.index:
-        return ""
+        return None
     value = record[metric]
-    if metric in RATE_DENOMINATORS:
-        return "" if _is_missing(value) else f"{float(value):.2%}"
-    return _format_number(value, metric)
+    if _is_missing(value):
+        return None
+    if metric in COUNT_METRICS:
+        return int(round(float(value)))
+    return float(value) if isinstance(value, (int, float)) else value
 
 
 def _metric_cell_format(metric: str) -> str:
@@ -187,27 +187,36 @@ def _metric_cell_format(metric: str) -> str:
     return "value"
 
 
-def _format_user_profile_value(value: Any, metric: str) -> str:
+def _metric_number_format(metric: str) -> str | None:
+    if metric in RATE_DENOMINATORS or _metric_cell_format(metric) == "percent":
+        return "0.00%"
+    if metric in COUNT_METRICS or _metric_cell_format(metric) == "integer":
+        return "#,##0"
+    if metric in AMOUNT_METRICS:
+        return "#,##0.00"
+    if metric in FOUR_DECIMAL_METRICS:
+        return "0.0000"
+    if _metric_cell_format(metric) == "decimal_2":
+        return "#,##0.00"
+    if _metric_cell_format(metric) == "value":
+        return "0.0000"
+    return None
+
+
+def _user_profile_value(value: Any, metric: str) -> Any:
     if _is_missing(value) or value == "":
-        return ""
+        return None
     cell_format = _metric_cell_format(metric)
-    if cell_format == "percent":
-        return f"{float(value):.2%}"
     if cell_format == "integer":
-        return f"{int(round(float(value))):,}"
-    if cell_format == "decimal_2":
-        return f"{float(value):,.2f}"
-    return str(value)
+        return int(round(float(value)))
+    if cell_format in {"percent", "decimal_2", "value"}:
+        return float(value)
+    return value
 
 
 def _apply_metric_number_format(ws, start_row: int, row_count: int, headers: list[str]) -> None:
-    formats = {
-        "percent": "0.00%",
-        "integer": "#,##0",
-        "decimal_2": "#,##0.00",
-    }
     for col_idx, header in enumerate(headers, start=1):
-        number_format = formats.get(_metric_cell_format(str(header)))
+        number_format = _metric_number_format(str(header))
         if not number_format:
             continue
         for row_idx in range(start_row + 1, start_row + row_count):
@@ -321,19 +330,19 @@ def _build_metric_pivot(
         record: dict[str, Any] = {row_bin: _label_display(row_value)}
         for column_value in column_values:
             column_key = _label_key(column_value)
-            record[_label_display(column_value)] = _format_cell(
+            record[_label_display(column_value)] = _cell_value(
                 detail_records.get((row_key, column_key)), metric
             )
-        record["Total"] = _format_cell(row_total_records.get((row_key,)), metric)
+        record["Total"] = _cell_value(row_total_records.get((row_key,)), metric)
         records.append(record)
 
     total_record: dict[str, Any] = {row_bin: "Total"}
     for column_value in column_values:
         column_key = _label_key(column_value)
-        total_record[_label_display(column_value)] = _format_cell(
+        total_record[_label_display(column_value)] = _cell_value(
             column_total_records.get((column_key,)), metric
         )
-    total_record["Total"] = _format_cell(grand_record, metric)
+    total_record["Total"] = _cell_value(grand_record, metric)
     records.append(total_record)
     return pd.DataFrame(records)
 
@@ -407,6 +416,8 @@ def _build_user_profile_numeric_pivot(
     row_totals = calculate_user_profile_numeric_metrics(df, [row_bin], numeric_cfg)
     column_totals = calculate_user_profile_numeric_metrics(df, [column_bin], numeric_cfg)
     grand_total = calculate_user_profile_numeric_metrics(df, [], numeric_cfg)
+    row_order = _configured_bin_order(cfg, row_bin)
+    column_order = _configured_bin_order(cfg, column_bin)
 
     detail_records = _records_by_key(detail, [row_bin, column_bin])
     row_total_records = _records_by_key(row_totals, [row_bin])
@@ -414,29 +425,29 @@ def _build_user_profile_numeric_pivot(
     grand_record = grand_total.iloc[0] if not grand_total.empty else None
 
     records: list[dict[str, Any]] = []
-    for row_value in USER_PROFILE_BIN_ORDER:
+    for row_value in row_order:
         row_key = _label_key(row_value)
         record: dict[str, Any] = {row_bin: _label_display(row_value)}
-        for column_value in USER_PROFILE_BIN_ORDER:
+        for column_value in column_order:
             column_key = _label_key(column_value)
             cell_record = detail_records.get((row_key, column_key))
             record[_label_display(column_value)] = (
-                "" if cell_record is None else _format_user_profile_value(cell_record.get(metric), metric)
+                None if cell_record is None else _user_profile_value(cell_record.get(metric), metric)
             )
         row_total_record = row_total_records.get((row_key,))
         record["Total"] = (
-            "" if row_total_record is None else _format_user_profile_value(row_total_record.get(metric), metric)
+            None if row_total_record is None else _user_profile_value(row_total_record.get(metric), metric)
         )
         records.append(record)
 
     total_record: dict[str, Any] = {row_bin: "Total"}
-    for column_value in USER_PROFILE_BIN_ORDER:
+    for column_value in column_order:
         column_key = _label_key(column_value)
         column_total_record = column_total_records.get((column_key,))
         total_record[_label_display(column_value)] = (
-            "" if column_total_record is None else _format_user_profile_value(column_total_record.get(metric), metric)
+            None if column_total_record is None else _user_profile_value(column_total_record.get(metric), metric)
         )
-    total_record["Total"] = "" if grand_record is None else _format_user_profile_value(grand_record.get(metric), metric)
+    total_record["Total"] = None if grand_record is None else _user_profile_value(grand_record.get(metric), metric)
     records.append(total_record)
     return pd.DataFrame(records)
 
@@ -451,13 +462,14 @@ def _empty_user_profile_numeric_row(numeric_metrics: list[dict[str, Any]]) -> di
 
 def _complete_user_profile_numeric_metrics(
     metrics: pd.DataFrame,
+    cfg: dict[str, Any],
     numeric_metrics: list[dict[str, Any]],
     group_cols: list[str],
 ) -> pd.DataFrame:
     if not group_cols:
         return metrics
 
-    expected_values = {col: USER_PROFILE_BIN_ORDER for col in group_cols}
+    expected_values = {col: _configured_bin_order(cfg, col) for col in group_cols}
     existing = _records_by_key(metrics, group_cols) if not metrics.empty else {}
     records: list[dict[str, Any]] = []
 
@@ -509,6 +521,7 @@ def _build_category_distribution_pivot(
     distribution: pd.DataFrame,
     field: str,
     value_col: str,
+    row_order: list[Any],
 ) -> pd.DataFrame:
     field_data = distribution[distribution["profile_field"].eq(field)].copy()
     category_order = (
@@ -522,17 +535,17 @@ def _build_category_distribution_pivot(
     columns = category_order + ["Total"]
     records: list[dict[str, Any]] = []
 
-    for row_value in USER_PROFILE_BIN_ORDER + ["Total"]:
+    for row_value in row_order + ["Total"]:
         row_data = field_data[field_data["primary_model_score_bin"].astype(str).eq(str(row_value))]
         row_record: dict[str, Any] = {"primary_model_score_bin": _label_display(row_value)}
         for category_value in columns:
             match = row_data[row_data["category_value"].astype(str).eq(str(category_value))]
             if match.empty:
-                row_record[category_value] = ""
+                row_record[category_value] = None
                 continue
             value = match.iloc[0][value_col]
             metric_name = "category_pct" if value_col.endswith("_pct") else "category_cnt"
-            row_record[category_value] = _format_user_profile_value(value, metric_name)
+            row_record[category_value] = _user_profile_value(value, metric_name)
         records.append(row_record)
 
     return pd.DataFrame(records, columns=["primary_model_score_bin"] + columns)
@@ -576,6 +589,15 @@ def _style_table(ws, start_row: int, row_count: int, col_count: int) -> None:
             cell.alignment = Alignment(horizontal="center")
             if is_total_row or ws.cell(row=start_row, column=col).value == "Total":
                 cell.fill = total_fill
+
+
+def _apply_pivot_number_format(ws, start_row: int, row_count: int, col_count: int, metric: str) -> None:
+    number_format = _metric_number_format(metric)
+    if not number_format:
+        return
+    for row in range(start_row + 1, start_row + row_count):
+        for col in range(2, col_count + 1):
+            ws.cell(row=row, column=col).number_format = number_format
 
 
 def _auto_width(ws) -> None:
@@ -626,6 +648,7 @@ def write_cross_model_workbook(
             pivot = _build_metric_pivot(df, cfg, row_bin, column_bin, metric)
             row_count, col_count = _write_dataframe(ws, pivot, current_row)
             _style_table(ws, current_row, row_count, col_count)
+            _apply_pivot_number_format(ws, current_row, row_count, col_count, metric)
             current_row += row_count + 2
         _auto_width(ws)
 
@@ -639,6 +662,7 @@ def write_cross_model_workbook(
         ws = wb.create_sheet(sheet_name)
         row_count, col_count = _write_dataframe(ws, data, 1)
         _style_table(ws, 1, row_count, col_count)
+        _apply_metric_number_format(ws, 1, row_count, list(data.columns))
         ws.freeze_panes = "C2" if sheet_name == "raw_cross_metrics" else "A2"
         _auto_width(ws)
 
@@ -684,11 +708,17 @@ def export_cross_model_bin_user_profile_excel(
             pivot = _build_user_profile_numeric_pivot(df, cfg, row_bin, column_bin, metric, numeric_metrics)
             row_count, col_count = _write_dataframe(ws, pivot, current_row)
             _style_table(ws, current_row, row_count, col_count)
+            _apply_pivot_number_format(ws, current_row, row_count, col_count, metric)
             current_row += row_count + 2
         _auto_width(ws)
 
     distribution_frames = [
-        calculate_user_profile_category_distribution(df, row_bin, metric_cfg, USER_PROFILE_BIN_ORDER)
+        calculate_user_profile_category_distribution(
+            df,
+            row_bin,
+            metric_cfg,
+            _configured_bin_order(cfg, row_bin),
+        )
         for metric_cfg in category_metrics
     ]
     distribution = (
@@ -718,9 +748,15 @@ def export_cross_model_bin_user_profile_excel(
                 metric_name = f"{field}_{suffix}"
                 ws.cell(row=current_row, column=1, value=metric_name).font = Font(bold=True, size=12)
                 current_row += 1
-                pivot = _build_category_distribution_pivot(distribution, field, value_col)
+                pivot = _build_category_distribution_pivot(
+                    distribution,
+                    field,
+                    value_col,
+                    _configured_bin_order(cfg, row_bin),
+                )
                 row_count, col_count = _write_dataframe(ws, pivot, current_row)
                 _style_table(ws, current_row, row_count, col_count)
+                _apply_pivot_number_format(ws, current_row, row_count, col_count, metric_name)
                 current_row += row_count + 2
         _auto_width(ws)
 
@@ -733,6 +769,7 @@ def export_cross_model_bin_user_profile_excel(
 
     raw_numeric = _complete_user_profile_numeric_metrics(
         calculate_user_profile_numeric_metrics(df, [row_bin, column_bin], numeric_cfg),
+        cfg,
         numeric_metrics,
         [row_bin, column_bin],
     )
