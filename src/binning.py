@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 
@@ -26,42 +25,124 @@ def _build_collapsed_label(chunk_index: int, label_type: str | None, source_labe
     return f"{source_labels[0]}_{source_labels[-1]}"
 
 
-def _collapse_bins(
+def _normalize_bin_label(value: Any) -> str:
+    if value is None or pd.isna(value):
+        return "__NA__"
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+def _resolve_group_indexes(group_cfg: Any, bins: list[dict[str, Any]]) -> tuple[Any, list[int]]:
+    group_label = None
+    source_values = group_cfg
+    source_mode = "auto"
+
+    if isinstance(group_cfg, dict):
+        group_label = group_cfg.get("label")
+        if "source_bin_indexes" in group_cfg:
+            source_values = group_cfg.get("source_bin_indexes")
+            source_mode = "index"
+        elif "source_bin_labels" in group_cfg:
+            source_values = group_cfg.get("source_bin_labels")
+            source_mode = "label"
+        elif "bins" in group_cfg:
+            source_values = group_cfg.get("bins")
+
+    if not isinstance(source_values, (list, tuple)) or not source_values:
+        raise ValueError(f"Each bin group must contain at least one source bin, got {group_cfg}")
+
+    label_to_index = {
+        _normalize_bin_label(bin_cfg.get("label")): index
+        for index, bin_cfg in enumerate(bins)
+    }
+    values = list(source_values)
+    indexes: list[int] = []
+
+    if source_mode in {"auto", "label"}:
+        missing_labels = [
+            value for value in values
+            if _normalize_bin_label(value) not in label_to_index
+        ]
+        if not missing_labels:
+            indexes = [label_to_index[_normalize_bin_label(value)] for value in values]
+        elif source_mode == "label":
+            raise ValueError(f"bin group references unknown source_bin_labels={missing_labels}")
+
+    if not indexes:
+        try:
+            indexes = [int(value) - 1 for value in values]
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"bin group values must match source labels or 1-based indexes, got {values}"
+            ) from exc
+
+    invalid_indexes = [index + 1 for index in indexes if index < 0 or index >= len(bins)]
+    if invalid_indexes:
+        raise ValueError(
+            f"bin group references source_bin_indexes outside 1..{len(bins)}: {invalid_indexes}"
+        )
+
+    return group_label, indexes
+
+
+def _build_grouped_bins(
     bins: list[dict[str, Any]],
-    output_bin_count: int | None,
+    bin_groups: list[Any],
     label_type: str | None,
 ) -> list[dict[str, Any]]:
-    if not bins or output_bin_count in {None, len(bins)}:
-        return bins
-
-    if output_bin_count <= 0:
-        raise ValueError(f"output_bin_count must be positive, got {output_bin_count}")
-    if output_bin_count > len(bins):
-        raise ValueError(
-            f"output_bin_count={output_bin_count} cannot exceed configured bin count={len(bins)}"
-        )
-    if len(bins) % output_bin_count != 0:
-        raise ValueError(
-            f"Configured bin count={len(bins)} cannot be evenly collapsed into output_bin_count={output_bin_count}"
-        )
-
-    chunk_size = len(bins) // output_bin_count
     collapsed: list[dict[str, Any]] = []
-    for chunk_index in range(output_bin_count):
-        start = chunk_index * chunk_size
-        end = start + chunk_size
-        chunk = bins[start:end]
-        first = chunk[0]
-        last = chunk[-1]
+    covered_indexes: list[int] = []
+    expected_next_index = 0
+
+    for group_index, group_cfg in enumerate(bin_groups):
+        configured_label, indexes = _resolve_group_indexes(group_cfg, bins)
+        if indexes != list(range(indexes[0], indexes[-1] + 1)):
+            raise ValueError(f"bin group must contain adjacent source bins, got indexes={[i + 1 for i in indexes]}")
+        if indexes[0] != expected_next_index:
+            raise ValueError(
+                "bin groups must cover source bins once and in order; "
+                f"expected next source_bin_index={expected_next_index + 1}, got {indexes[0] + 1}"
+            )
+        expected_next_index = indexes[-1] + 1
+        covered_indexes.extend(indexes)
+
+        chunk = [bins[index] for index in indexes]
         labels = [item.get("label") for item in chunk if item.get("label") is not None]
+        label = configured_label
+        if label is None:
+            label = _build_collapsed_label(group_index, label_type, labels)
         collapsed.append(
             {
-                "label": _build_collapsed_label(chunk_index, label_type, labels),
-                "min_score": first.get("min_score", -np.inf),
-                "max_score": last.get("max_score", np.inf),
+                "label": label,
+                "min_score": chunk[0].get("min_score"),
+                "max_score": chunk[-1].get("max_score"),
             }
         )
+
+    expected_indexes = list(range(len(bins)))
+    if covered_indexes != expected_indexes:
+        missing = sorted(set(expected_indexes) - set(covered_indexes))
+        extra = sorted(index for index in covered_indexes if covered_indexes.count(index) > 1)
+        raise ValueError(
+            "bin groups must cover every configured source bin exactly once; "
+            f"missing_source_bin_indexes={[i + 1 for i in missing]}, "
+            f"duplicate_source_bin_indexes={[i + 1 for i in extra]}"
+        )
+
     return collapsed
+
+
+def _build_effective_bins(
+    bins: list[dict[str, Any]],
+    label_type: str | None,
+    bin_groups: list[Any] | None,
+) -> list[dict[str, Any]]:
+    if not bins:
+        return []
+    if not bin_groups:
+        raise ValueError("Each score config must define manual bin_groups.")
+    return _build_grouped_bins(bins, bin_groups, label_type)
 
 
 def _collapse_else_label(
@@ -116,9 +197,9 @@ def apply_range_binning(
 
     for b in bins:
         label = b.get("label")
-        max_score = b.get("max_score", np.inf)
+        max_score = b.get("max_score", float("inf"))
         if str(binning_mode).lower() == "range":
-            min_score = b.get("min_score", -np.inf)
+            min_score = b.get("min_score", float("-inf"))
             cond = score.ge(min_score) & score.le(max_score)
         else:
             cond = score.le(max_score)
@@ -146,7 +227,6 @@ def apply_score_binning(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.Dat
     unknown_label = bin_cfg.get("unknown_label", "UNKNOWN")
     null_label = bin_cfg.get("null_label", None)
     default_binning_mode = bin_cfg.get("binning_mode", "upper_bound")
-    default_output_bin_count = bin_cfg.get("output_bin_count")
 
     for score_cfg in bin_cfg.get("scores", []):
         score_field = score_cfg.get("score_field")
@@ -154,7 +234,7 @@ def apply_score_binning(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.Dat
         bins = score_cfg.get("bins", [])
         label_type = score_cfg.get("bin_label_type")
         binning_mode = score_cfg.get("binning_mode", default_binning_mode)
-        output_bin_count = score_cfg.get("output_bin_count", default_output_bin_count)
+        bin_groups = score_cfg.get("bin_groups")
         score_null_label = score_cfg.get("null_label", null_label)
         score_null_values = score_cfg.get("null_values")
         else_label = score_cfg.get("else_label")
@@ -163,10 +243,10 @@ def apply_score_binning(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.Dat
             continue
         if score_field not in out.columns:
             logger.warning(f"Score field missing, bin field will be null: {score_field}")
-        effective_bins = _collapse_bins(
+        effective_bins = _build_effective_bins(
             bins,
-            int(output_bin_count) if output_bin_count is not None else None,
             label_type,
+            bin_groups,
         )
         effective_else_label = _collapse_else_label(else_label, bins, effective_bins)
         out = apply_range_binning(

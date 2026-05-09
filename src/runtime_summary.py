@@ -52,7 +52,6 @@ def log_runtime_plan(cfg: dict[str, Any], logger) -> None:
     keys_cfg = cfg.get("keys", {}) or {}
     datetime_candidates = [keys_cfg.get("datetime_key")] + list(keys_cfg.get("datetime_aliases", []) or [])
     score_cfgs = cfg.get("score_binning", {}).get("scores", []) or []
-    default_output_bin_count = cfg.get("score_binning", {}).get("output_bin_count")
     input_tables = cfg.get("input_tables", {}) or {}
     joins = cfg.get("joins", {}) or {}
     group_analyses = cfg.get("analysis", {}).get("group_analyses", []) or []
@@ -86,7 +85,7 @@ def log_runtime_plan(cfg: dict[str, Any], logger) -> None:
                 f"score_field={score_cfg.get('score_field', '-')}, "
                 f"bin_field={score_cfg.get('bin_field', '-')}, "
                 f"bins={len(score_cfg.get('bins', []) or []):,}, "
-                f"output_bin_count={score_cfg.get('output_bin_count', default_output_bin_count)}"
+                f"bin_groups={len(score_cfg.get('bin_groups', []) or []):,}"
             )
 
     if joins:

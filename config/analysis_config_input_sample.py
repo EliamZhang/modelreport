@@ -36,7 +36,6 @@
         "unknown_label": None,
         "null_label": None,
         "binning_mode": "upper_bound",
-        "output_bin_count": 5,
         "scores": [
             {
                 "name": "primary_model_score",
@@ -47,6 +46,12 @@
                 "null_label": None,
                 "null_values": [-1],
                 "else_label": 100,
+                # source_bin_indexes are 1-based indexes of the configured source bins.
+                "bin_groups": [
+                    {"label": 1, "source_bin_indexes": [1, 2, 3, 4]},
+                    {"label": 2, "source_bin_indexes": [5, 6, 7, 8]},
+                    {"label": 3, "source_bin_indexes": [9, 10]},
+                ],
 "bins": [
     {"label": 10, "min_score": 0.050829, "max_score": 0.134913},
     {"label": 20, "min_score": 0.134927, "max_score": 0.166178},
@@ -69,6 +74,12 @@
                 "null_label": None,
                 "null_values": [-1],
                 "else_label": 100,
+                # source_bin_indexes are 1-based indexes of the configured source bins.
+                "bin_groups": [
+                    {"label": 1, "source_bin_indexes": [1, 2, 3, 4]},
+                    {"label": 2, "source_bin_indexes": [5, 6, 7, 8]},
+                    {"label": 3, "source_bin_indexes": [9, 10]},
+                ],
                 "bins": [
                     {"label": 10, "min_score": 0.020419, "max_score": 0.048577},
                     {"label": 20, "min_score": 0.048631, "max_score": 0.062086},
