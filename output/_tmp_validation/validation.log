@@ -1,0 +1,72 @@
+2026-04-30 14:43:11 | INFO | Loading table=base_sample, path=./INPUT/main_analysis_model.csv, columns=ALL
+2026-04-30 14:43:11 | INFO | Table load result: table=base_sample, rows=12, cols=5, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=base_sample, selected_column_mode=ALL, configured_selected_cnt=ALL, actual_loaded_cnt=5, missing_selected_cnt=0
+2026-04-30 14:43:11 | INFO | Table meta: table=base_sample, optional=False, description=base sample with primary model score
+2026-04-30 14:43:11 | INFO | Loading table=customer_profile, path=./INPUT/business_analysis_variable_library.csv, selected_columns=28
+2026-04-30 14:43:11 | INFO | Table load result: table=customer_profile, rows=12, cols=27, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=customer_profile, selected_column_mode=PARTIAL, configured_selected_cnt=28, actual_loaded_cnt=27, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=customer_profile, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=customer_profile, optional=False, description=business analysis variable library
+2026-04-30 14:43:11 | INFO | Loading table=comparison_score, path=./INPUT/cross_model_score.csv, selected_columns=3
+2026-04-30 14:43:11 | INFO | Table load result: table=comparison_score, rows=12, cols=2, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=comparison_score, selected_column_mode=PARTIAL, configured_selected_cnt=3, actual_loaded_cnt=2, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=comparison_score, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=comparison_score, optional=False, description=comparison model score
+2026-04-30 14:43:11 | INFO | Loading table=feature_detail, path=./INPUT/model_variable_library.csv, selected_columns=108
+2026-04-30 14:43:11 | INFO | Table load result: table=feature_detail, rows=12, cols=107, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=feature_detail, selected_column_mode=PARTIAL, configured_selected_cnt=108, actual_loaded_cnt=107, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=feature_detail, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=feature_detail, optional=False, description=model variable library
+2026-04-30 14:43:11 | INFO | Loading table=txn_industry_features, path=./INPUT/occupation_information.csv, selected_columns=9
+2026-04-30 14:43:11 | INFO | Table load result: table=txn_industry_features, rows=12, cols=8, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=txn_industry_features, selected_column_mode=PARTIAL, configured_selected_cnt=9, actual_loaded_cnt=8, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=txn_industry_features, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=txn_industry_features, optional=True, description=occupation information
+2026-04-30 14:43:11 | INFO | Base sample rows=12, cols=5
+2026-04-30 14:43:11 | INFO | Preparing join: name=customer_profile, source_table=customer_profile, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=26, source_rows=12, source_cols=27
+2026-04-30 14:43:11 | INFO | Join field check: table=customer_profile, join_key=application_id, configured_field_cnt=26, matched_field_cnt=26, missing_field_cnt=0
+2026-04-30 14:43:11 | INFO | Join result: source_table=customer_profile, before_rows=12, after_rows=12, match_application_id_cnt=12, unmatched_application_id_cnt=0, match_rate=100.00%, merged_in_field_cnt=26
+2026-04-30 14:43:11 | INFO | Preparing join: name=comparison_score, source_table=comparison_score, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=1, source_rows=12, source_cols=2
+2026-04-30 14:43:11 | INFO | Join field check: table=comparison_score, join_key=application_id, configured_field_cnt=1, matched_field_cnt=1, missing_field_cnt=0
+2026-04-30 14:43:11 | INFO | Join result: source_table=comparison_score, before_rows=12, after_rows=12, match_application_id_cnt=12, unmatched_application_id_cnt=0, match_rate=100.00%, merged_in_field_cnt=1
+2026-04-30 14:43:11 | INFO | Preparing join: name=txn_industry_features, source_table=txn_industry_features, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=7, source_rows=12, source_cols=8
+2026-04-30 14:43:11 | INFO | Join field check: table=txn_industry_features, join_key=application_id, configured_field_cnt=7, matched_field_cnt=7, missing_field_cnt=0
+2026-04-30 14:43:11 | INFO | Join result: source_table=txn_industry_features, before_rows=12, after_rows=12, match_application_id_cnt=12, unmatched_application_id_cnt=0, match_rate=100.00%, merged_in_field_cnt=7
+2026-04-30 14:43:11 | INFO | Applied binning: model=primary_model_score, score_field=aus_new_worthiness_bid_3rdmodel_v1_0_20260429, bin_field=primary_model_score_bin, mode=upper_bound, configured_bin_cnt=10, effective_bin_cnt=10, score_nonnull_cnt=11, score_missing_cnt=1, bin_null_cnt=1, unknown_cnt=0
+2026-04-30 14:43:11 | INFO | Applied binning: model=comparison_model_score, score_field=aus_new_risk_bid_3rdmodel_v1_0_20251201, bin_field=comparison_model_score_bin, mode=upper_bound, configured_bin_cnt=10, effective_bin_cnt=10, score_nonnull_cnt=11, score_missing_cnt=1, bin_null_cnt=1, unknown_cnt=0
+2026-04-30 14:43:11 | INFO | Loading table=base_sample, path=./INPUT/main_analysis_model.csv, columns=ALL
+2026-04-30 14:43:11 | INFO | Table load result: table=base_sample, rows=12, cols=5, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=base_sample, selected_column_mode=ALL, configured_selected_cnt=ALL, actual_loaded_cnt=5, missing_selected_cnt=0
+2026-04-30 14:43:11 | INFO | Table meta: table=base_sample, optional=False, description=base sample with primary model score
+2026-04-30 14:43:11 | INFO | Loading table=customer_profile, path=./INPUT/business_analysis_variable_library.csv, selected_columns=28
+2026-04-30 14:43:11 | INFO | Table load result: table=customer_profile, rows=12, cols=27, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=customer_profile, selected_column_mode=PARTIAL, configured_selected_cnt=28, actual_loaded_cnt=27, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=customer_profile, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=customer_profile, optional=False, description=business analysis variable library
+2026-04-30 14:43:11 | INFO | Loading table=comparison_score, path=./INPUT/cross_model_score.csv, selected_columns=3
+2026-04-30 14:43:11 | INFO | Table load result: table=comparison_score, rows=12, cols=2, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=comparison_score, selected_column_mode=PARTIAL, configured_selected_cnt=3, actual_loaded_cnt=2, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=comparison_score, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=comparison_score, optional=False, description=comparison model score
+2026-04-30 14:43:11 | INFO | Loading table=feature_detail, path=./INPUT/model_variable_library.csv, selected_columns=108
+2026-04-30 14:43:11 | INFO | Table load result: table=feature_detail, rows=12, cols=107, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=feature_detail, selected_column_mode=PARTIAL, configured_selected_cnt=108, actual_loaded_cnt=107, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=feature_detail, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=feature_detail, optional=False, description=model variable library
+2026-04-30 14:43:11 | INFO | Loading table=txn_industry_features, path=./INPUT/occupation_information.csv, selected_columns=9
+2026-04-30 14:43:11 | INFO | Table load result: table=txn_industry_features, rows=12, cols=8, primary_key_present=True, primary_key_missing_cnt=0, primary_key_unique_cnt=12, primary_key_duplicate_row_cnt=0
+2026-04-30 14:43:11 | INFO | Table column match: table=txn_industry_features, selected_column_mode=PARTIAL, configured_selected_cnt=9, actual_loaded_cnt=8, missing_selected_cnt=1
+2026-04-30 14:43:11 | WARNING | Table selected columns missing: table=txn_industry_features, first_30=[user_id]
+2026-04-30 14:43:11 | INFO | Table meta: table=txn_industry_features, optional=True, description=occupation information
+2026-04-30 14:43:11 | INFO | Base sample rows=12, cols=5
+2026-04-30 14:43:11 | INFO | Preparing join: name=customer_profile, source_table=customer_profile, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=26, source_rows=12, source_cols=27
+2026-04-30 14:43:11 | INFO | Join field check: table=customer_profile, join_key=application_id, configured_field_cnt=26, matched_field_cnt=26, missing_field_cnt=0
+2026-04-30 14:43:11 | INFO | Join result: source_table=customer_profile, before_rows=12, after_rows=12, match_application_id_cnt=12, unmatched_application_id_cnt=0, match_rate=100.00%, merged_in_field_cnt=26
+2026-04-30 14:43:11 | INFO | Preparing join: name=comparison_score, source_table=comparison_score, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=1, source_rows=12, source_cols=2
+2026-04-30 14:43:11 | INFO | Join field check: table=comparison_score, join_key=application_id, configured_field_cnt=1, matched_field_cnt=1, missing_field_cnt=0
+2026-04-30 14:43:11 | INFO | Join result: source_table=comparison_score, before_rows=12, after_rows=12, match_application_id_cnt=12, unmatched_application_id_cnt=0, match_rate=100.00%, merged_in_field_cnt=1
+2026-04-30 14:43:11 | INFO | Preparing join: name=txn_industry_features, source_table=txn_industry_features, how=left, base_key=application_id, join_key=application_id, configured_field_cnt=7, source_rows=12, source_cols=8
+2026-04-30 14:43:11 | INFO | Join field check: table=txn_industry_features, join_key=application_id, configured_field_cnt=7, matched_field_cnt=7, missing_field_cnt=0
+2026-04-30 14:43:11 | INFO | Join result: source_table=txn_industry_features, before_rows=12, after_rows=12, match_application_id_cnt=12, unmatched_application_id_cnt=0, match_rate=100.00%, merged_in_field_cnt=7
+2026-04-30 14:43:11 | INFO | Applied binning: model=primary_model_score, score_field=aus_new_worthiness_bid_3rdmodel_v1_0_20260429, bin_field=primary_model_score_bin, mode=upper_bound, configured_bin_cnt=10, effective_bin_cnt=5, score_nonnull_cnt=11, score_missing_cnt=1, bin_null_cnt=1, unknown_cnt=0
+2026-04-30 14:43:11 | INFO | Applied binning: model=comparison_model_score, score_field=aus_new_risk_bid_3rdmodel_v1_0_20251201, bin_field=comparison_model_score_bin, mode=upper_bound, configured_bin_cnt=10, effective_bin_cnt=5, score_nonnull_cnt=11, score_missing_cnt=1, bin_null_cnt=1, unknown_cnt=0
