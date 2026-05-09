@@ -11,10 +11,11 @@ from src.data_loader import load_input_tables
 from src.label_builder import apply_deal_amount_filter, build_conversion_labels
 from src.logger import setup_logger
 from src.monthly_analysis import add_sample_month
-from src.workbook import write_cross_model_workbook
+from src.workbook import export_cross_model_bin_user_profile_excel, write_cross_model_workbook
 
 
 OUTPUT_FILE_NAME = "cross_model_bin_pivot_rate_only.xlsx"
+USER_PROFILE_OUTPUT_FILE_NAME = "cross_model_bin_pivot_user_profile.xlsx"
 
 
 def prepare_output_dir(cfg: dict) -> Path:
@@ -39,6 +40,7 @@ def main() -> None:
     cfg = resolve_config_paths(CONFIG)
     out_dir = prepare_output_dir(cfg)
     output_path = out_dir / OUTPUT_FILE_NAME
+    user_profile_output_path = out_dir / USER_PROFILE_OUTPUT_FILE_NAME
     logger = setup_logger(level=cfg["project"].get("log_level", "INFO"))
 
     logger.info("Cross model pivot workbook generation started")
@@ -55,6 +57,14 @@ def main() -> None:
         output_path=output_path,
         df=enriched,
         cfg=cfg,
+        row_bin="primary_model_score_bin",
+        column_bin="comparison_model_score_bin",
+        logger=logger,
+    )
+    export_cross_model_bin_user_profile_excel(
+        df=enriched,
+        cfg=cfg,
+        output_path=user_profile_output_path,
         row_bin="primary_model_score_bin",
         column_bin="comparison_model_score_bin",
         logger=logger,
