@@ -1,14 +1,25 @@
+from __future__ import annotations
+
+
 CONFIG = {
     "project": {
         "root_dir": ".",
         "output_dir": "./output/model_analysis_20260429",
         "log_level": "INFO",
     },
+    "output_files": {
+        "risk_performance": "model_bin_risk_performance_pivot.xlsx",
+        "feature_mean_profile": "model_bin_feature_mean_profile.xlsx",
+        "user_profile": "model_bin_user_profile_pivot.xlsx",
+    },
     "input_tables": {
         "base_sample": {"path": "./INPUT/main_analysis_model.csv"},
         "customer_profile": {"path": "./INPUT/business_analysis_variable_library.csv"},
         "comparison_score": {"path": "./INPUT/cross_model_score.csv"},
         "occupation_information": {"path": "./INPUT/occupation_information.csv"},
+    },
+    "feature_profile": {
+        "variable_library_path": "./INPUT/model_variable_library.csv",
     },
     "keys": {
         "primary_key": "application_id",
@@ -21,7 +32,8 @@ CONFIG = {
         "sample_month_field": "sample_month",
     },
     "score_binning": {
-        "binning_mode": "upper_bound",
+        # 所有模型分统一等频分箱；-1 单独成箱，不参与等频切分。
+        "binning_mode": "equal_frequency",
         "scores": [
             {
                 "name": "primary_model_score",
@@ -29,27 +41,10 @@ CONFIG = {
                 "score_field": "aus_new_worthiness_bid_3rdmodel_v1_0_20260429",
                 "bin_field": "primary_model_score_bin",
                 "bin_label_type": "int",
-                "null_values": [-1],
-                "else_label": 100,
-                "bin_groups": [
-                    {"label": 1, "source_bin_indexes": [1, 2]},
-                    {"label": 2, "source_bin_indexes": [3, 4]},
-                    {"label": 3, "source_bin_indexes": [5, 6]},
-                    {"label": 4, "source_bin_indexes": [7, 8]},
-                    {"label": 5, "source_bin_indexes": [9, 10]},
-                ],
-                "bins": [
-                    {"label": 10,  "min_score": 0.042351, "max_score": 0.103616},
-                    {"label": 20,  "min_score": 0.103619, "max_score": 0.131366},
-                    {"label": 30,  "min_score": 0.131396, "max_score": 0.155640},
-                    {"label": 40,  "min_score": 0.155746, "max_score": 0.180419},
-                    {"label": 50,  "min_score": 0.180452, "max_score": 0.206797},
-                    {"label": 60,  "min_score": 0.206851, "max_score": 0.239380},
-                    {"label": 70,  "min_score": 0.239419, "max_score": 0.276517},
-                    {"label": 80,  "min_score": 0.276517, "max_score": 0.330273},
-                    {"label": 90,  "min_score": 0.330276, "max_score": 0.412101},
-                    {"label": 100, "min_score": 0.412122, "max_score": 0.744668},
-                ],
+                "bin_count": 5,
+                "bin_labels": [1, 2, 3, 4, 5],
+                "special_values": [-1],
+                "special_label_map": {-1: -1},
             },
             {
                 "name": "comparison_model_score",
@@ -57,27 +52,10 @@ CONFIG = {
                 "score_field": "aus_new_risk_bid_3rdmodel_v1_0_20251201",
                 "bin_field": "comparison_model_score_bin",
                 "bin_label_type": "int",
-                "null_values": [-1],
-                "else_label": 100,
-                "bin_groups": [
-                    {"label": 1, "source_bin_indexes": [1, 2]},
-                    {"label": 2, "source_bin_indexes": [3, 4]},
-                    {"label": 3, "source_bin_indexes": [5, 6]},
-                    {"label": 4, "source_bin_indexes": [7, 8]},
-                    {"label": 5, "source_bin_indexes": [9, 10]},
-                ],
-                "bins": [
-                    {"label": 10, "min_score": 0.020419, "max_score": 0.048577},
-                    {"label": 20, "min_score": 0.048631, "max_score": 0.062086},
-                    {"label": 30, "min_score": 0.062116, "max_score": 0.075629},
-                    {"label": 40, "min_score": 0.075668, "max_score": 0.091284},
-                    {"label": 50, "min_score": 0.091289, "max_score": 0.109224},
-                    {"label": 60, "min_score": 0.109264, "max_score": 0.128392},
-                    {"label": 70, "min_score": 0.128397, "max_score": 0.154584},
-                    {"label": 80, "min_score": 0.154598, "max_score": 0.188973},
-                    {"label": 90, "min_score": 0.189020, "max_score": 0.240037},
-                    {"label": 100, "min_score": 0.240060, "max_score": 0.615365},
-                ],
+                "bin_count": 5,
+                "bin_labels": [1, 2, 3, 4, 5],
+                "special_values": [-1],
+                "special_label_map": {-1: -1},
             },
         ],
     },
@@ -168,12 +146,7 @@ CONFIG = {
     "user_profile_metrics": {
         "numeric_cross_metrics": [
             {"category": "basic_profile", "source_field": "age", "output_field": "avg_age", "agg": "mean"},
-            {
-                "category": "basic_profile",
-                "source_field": "dependents",
-                "output_field": "avg_dependents",
-                "agg": "mean",
-            },
+            {"category": "basic_profile", "source_field": "dependents", "output_field": "avg_dependents", "agg": "mean"},
             {
                 "category": "occupation_profile",
                 "source_field": "bank_txn_industry_primary_industry_amt",
@@ -206,27 +179,9 @@ CONFIG = {
             },
         ],
         "category_distribution_metrics": [
-            {
-                "sheet": "geo_profile_distribution",
-                "source_field": "state",
-                "top_n": 20,
-                "missing_label": "Missing",
-                "others_label": "Others",
-            },
-            {
-                "sheet": "geo_profile_distribution",
-                "source_field": "suburb",
-                "top_n": 20,
-                "missing_label": "Missing",
-                "others_label": "Others",
-            },
-            {
-                "sheet": "family_profile_distribution",
-                "source_field": "family_type",
-                "top_n": 20,
-                "missing_label": "Missing",
-                "others_label": "Others",
-            },
+            {"sheet": "geo_profile_distribution", "source_field": "state", "top_n": 20, "missing_label": "Missing", "others_label": "Others"},
+            {"sheet": "geo_profile_distribution", "source_field": "suburb", "top_n": 20, "missing_label": "Missing", "others_label": "Others"},
+            {"sheet": "family_profile_distribution", "source_field": "family_type", "top_n": 20, "missing_label": "Missing", "others_label": "Others"},
             {
                 "sheet": "attributed_category_distribution",
                 "source_field": "attributed_category",

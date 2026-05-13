@@ -20,24 +20,24 @@ output/model_analysis_20260429/
 
 Generated files, in write order:
 
-1. `model_bin_feature_mean_profile.xlsx`
+1. `model_bin_risk_performance_pivot.xlsx`
+   - Risk performance and business KPI pivot by model bins.
+   - Includes risk performance, amount risk, existing profile means, and conversion metrics.
+
+2. `model_bin_feature_mean_profile.xlsx`
    - Feature mean profile by model bins.
    - Uses variables from `INPUT/model_variable_library.csv`.
    - Converts each variable with `pd.to_numeric(errors="coerce")`.
    - Reports mean values by primary bin, comparison bin, and primary bin x comparison bin.
 
-2. `model_bin_user_profile_pivot.xlsx`
+3. `model_bin_user_profile_pivot.xlsx`
    - User profile pivot by model bins.
    - Numeric profile metrics use primary bin x comparison bin pivots.
    - Categorical profile fields use primary-model-bin distribution tables.
 
-3. `model_bin_risk_performance_pivot.xlsx`
-   - Risk performance and business KPI pivot by model bins.
-   - Includes risk performance, amount risk, existing profile means, and conversion metrics.
-
 ## Inputs
 
-Main input paths are configured in `config/analysis_config_input_sample.py`.
+Main input paths are configured in `config.py`.
 
 Current input tables:
 
@@ -62,24 +62,23 @@ Current input tables:
 Primary and comparison model bins are configured in:
 
 ```text
-config/analysis_config_input_sample.py
+config.py
 ```
 
-Current grouping for both models:
+Current rule for both models:
 
 ```python
-"bin_groups": [
-    {"label": 1, "source_bin_indexes": [1, 2, 3, 4]},
-    {"label": 2, "source_bin_indexes": [5, 6, 7, 8]},
-    {"label": 3, "source_bin_indexes": [9, 10]},
-]
+"bin_count": 5,
+"bin_labels": [1, 2, 3, 4, 5],
+"special_values": [-1],
+"special_label_map": {-1: -1},
 ```
 
 Rules:
 
-- `source_bin_indexes` are 1-based source-bin positions.
-- Every source bin must be covered exactly once.
-- Each group must contain adjacent source bins.
+- Model scores use equal-frequency bins.
+- `-1` is kept as a standalone bin and is not included in equal-frequency cutting.
+- Normal bins are cut from non-null, non-special scores, with sample counts kept as even as possible.
 
 User profile metrics are configured under:
 
