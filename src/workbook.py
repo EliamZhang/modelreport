@@ -109,6 +109,11 @@ USER_PROFILE_DISTRIBUTION_SHEET_ORDER = [
     "occupation_profile_distribution",
 ]
 DEFAULT_BIN_ORDER = [1, 2, 3]
+EXCEL_FONT_NAME = "Microsoft YaHei"
+
+
+def _font(**kwargs) -> Font:
+    return Font(name=EXCEL_FONT_NAME, **kwargs)
 
 
 def _is_missing(value: Any) -> bool:
@@ -555,15 +560,16 @@ def _write_dataframe(ws, df: pd.DataFrame, start_row: int) -> tuple[int, int]:
     rows = list(dataframe_to_rows(df, index=False, header=True))
     for row_offset, row_values in enumerate(rows):
         for col_offset, value in enumerate(row_values):
-            ws.cell(
+            cell = ws.cell(
                 row=start_row + row_offset,
                 column=1 + col_offset,
                 value=None if _is_missing(value) else value,
             )
+            cell.font = _font(color="333333")
     return len(rows), len(df.columns)
 
 def _style_metric_title(cell) -> None:
-    cell.font = Font(bold=True, size=12, color="000000")
+    cell.font = _font(bold=True, size=12, color="000000")
     cell.alignment = Alignment(horizontal="left", vertical="center")
 
 
@@ -732,7 +738,7 @@ def export_cross_model_bin_user_profile_excel(
         ws.freeze_panes = "A2"
         current_row = 1
         for metric in numeric_groups[category]:
-            ws.cell(row=current_row, column=1, value=metric).font = Font(bold=True, size=12)
+            ws.cell(row=current_row, column=1, value=metric).font = _font(bold=True, size=12)
             current_row += 1
             pivot = _build_user_profile_numeric_pivot(df, cfg, row_bin, column_bin, metric, numeric_metrics)
             row_count, col_count = _write_dataframe(ws, pivot, current_row)
