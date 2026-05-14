@@ -1100,6 +1100,24 @@ def _auto_width(ws) -> None:
 
 
 def _build_metric_pivot(df: pd.DataFrame, cfg: dict[str, Any], row_bin: str, column_bin: str, metric: str) -> pd.DataFrame:
+    if df.empty:
+        row_values = _configured_bin_order(cfg, row_bin)
+        column_values = _configured_bin_order(cfg, column_bin)
+        empty_value = 0 if metric in COUNT_METRICS or metric == "sample_cnt" else None
+        records: list[dict[str, Any]] = []
+        for row_value in row_values:
+            record: dict[str, Any] = {row_bin: _label_display(row_value)}
+            for column_value in column_values:
+                record[_label_display(column_value)] = empty_value
+            record["Total"] = empty_value
+            records.append(record)
+        total_record: dict[str, Any] = {row_bin: "Total"}
+        for column_value in column_values:
+            total_record[_label_display(column_value)] = empty_value
+        total_record["Total"] = empty_value
+        records.append(total_record)
+        return pd.DataFrame(records)
+
     detail = calculate_group_metrics(df, [row_bin, column_bin], cfg)
     row_totals = calculate_group_metrics(df, [row_bin], cfg)
     column_totals = calculate_group_metrics(df, [column_bin], cfg)
@@ -1165,7 +1183,7 @@ def _write_risk_perf_sheet(
     column_bin: str,
     metrics: list[str],
 ) -> None:
-    ws = wb.create_sheet(sheet_name[:31])
+    ws = wb.create_sheet(sheet_name)
     current_row = 1
     _style_metric_title(ws.cell(row=current_row, column=1, value=f"{title_prefix} - 全量申请样本交叉分布"))
     current_row += 1
@@ -1195,7 +1213,7 @@ def _write_metric_group_sheet(
     column_bin: str,
     metrics: list[str],
 ) -> None:
-    ws = wb.create_sheet(sheet_name[:31])
+    ws = wb.create_sheet(sheet_name)
     current_row = 1
     for metric in metrics:
         _style_metric_title(ws.cell(row=current_row, column=1, value=metric))
@@ -1262,10 +1280,11 @@ def export_risk_performance_workbook(
 
         _write_metric_group_sheet(wb, category, df, cfg, row_bin, column_bin, metrics)
         if category == "profile":
+            deal_df = _deal_sample_df(df, cfg, logger)
             _write_metric_group_sheet(
                 wb,
                 "profile_deal_sample",
-                _deal_sample_df(df, cfg, logger),
+                deal_df,
                 cfg,
                 row_bin,
                 column_bin,
