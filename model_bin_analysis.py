@@ -181,15 +181,35 @@ def _key_columns(cfg: dict[str, Any]) -> set[str]:
     return columns
 
 
+def _score_binning_schemes(cfg: dict[str, Any]) -> list[dict[str, Any]]:
+    binning_cfg = cfg.get("score_binning", {})
+    schemes = binning_cfg.get("schemes")
+    if schemes:
+        return list(schemes)
+    return [
+        {
+            "name": binning_cfg.get("default_scheme", "auto"),
+            "title": binning_cfg.get("title", binning_cfg.get("default_scheme", "auto")),
+            "binning_mode": binning_cfg.get("binning_mode", "equal_frequency"),
+            "scores": binning_cfg.get("scores", []),
+        }
+    ]
+
+
+def _score_binning_scheme_by_name(cfg: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {str(scheme.get("name")): scheme for scheme in _score_binning_schemes(cfg)}
+
+
 def _required_columns(cfg: dict[str, Any]) -> dict[str, set[str] | None]:
     required: dict[str, set[str] | None] = {cfg["analysis"]["base_table"]: None}
     for table_name in cfg["input_tables"]:
         required.setdefault(table_name, set(_key_columns(cfg)))
 
-    for score_cfg in cfg["score_binning"]["scores"]:
-        table_name = score_cfg["source_table"]
-        if required.get(table_name) is not None:
-            required[table_name].add(score_cfg["score_field"])
+    for scheme_cfg in _score_binning_schemes(cfg):
+        for score_cfg in scheme_cfg.get("scores", []):
+            table_name = score_cfg["source_table"]
+            if required.get(table_name) is not None:
+                required[table_name].add(score_cfg["score_field"])
 
     for join_cfg in cfg["joins"].values():
         table_name = join_cfg["source_table"]
@@ -297,6 +317,88 @@ def _special_label_map(score_cfg: dict[str, Any]) -> dict[float, Any]:
     return {float(key): value for key, value in score_cfg.get("special_label_map", {}).items()}
 
 
+def _normalize_bin_label(value: Any) -> str:
+    if value is None or pd.isna(value):
+        return "__NA__"
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+def _resolve_group_indexes(group_cfg: Any, bins: list[dict[str, Any]]) -> tuple[Any, list[int]]:
+    group_label = None
+    source_values = group_cfg
+    source_mode = "auto"
+
+    if isinstance(group_cfg, dict):
+        group_label = group_cfg.get("label")
+        if "source_bin_indexes" in group_cfg:
+            source_values = group_cfg.get("source_bin_indexes")
+            source_mode = "index"
+        elif "source_bin_labels" in group_cfg:
+            source_values = group_cfg.get("source_bin_labels")
+            source_mode = "label"
+        elif "bins" in group_cfg:
+            source_values = group_cfg.get("bins")
+
+    if not isinstance(source_values, (list, tuple)) or not source_values:
+        raise ValueError(f"Each bin group must contain at least one source bin, got {group_cfg}")
+
+    label_to_index = {_normalize_bin_label(bin_cfg.get("label")): index for index, bin_cfg in enumerate(bins)}
+    values = list(source_values)
+    indexes: list[int] = []
+
+    if source_mode in {"auto", "label"}:
+        missing_labels = [value for value in values if _normalize_bin_label(value) not in label_to_index]
+        if not missing_labels:
+            indexes = [label_to_index[_normalize_bin_label(value)] for value in values]
+        elif source_mode == "label":
+            raise ValueError(f"bin group references unknown source_bin_labels={missing_labels}")
+
+    if not indexes:
+        try:
+            indexes = [int(value) - 1 for value in values]
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"bin group values must match source labels or 1-based indexes, got {values}") from exc
+
+    invalid_indexes = [index + 1 for index in indexes if index < 0 or index >= len(bins)]
+    if invalid_indexes:
+        raise ValueError(f"bin group references source_bin_indexes outside 1..{len(bins)}: {invalid_indexes}")
+    return group_label, indexes
+
+
+def _build_group_label_map(bins: list[dict[str, Any]], bin_groups: list[Any] | None) -> dict[str, Any]:
+    if not bin_groups:
+        return {_normalize_bin_label(bin_cfg.get("label")): bin_cfg.get("label") for bin_cfg in bins}
+
+    label_map: dict[str, Any] = {}
+    covered_indexes: list[int] = []
+    for group_index, group_cfg in enumerate(bin_groups):
+        configured_label, indexes = _resolve_group_indexes(group_cfg, bins)
+        group_label = configured_label if configured_label is not None else group_index + 1
+        for index in indexes:
+            label_map[_normalize_bin_label(bins[index].get("label"))] = group_label
+        covered_indexes.extend(indexes)
+
+    expected_indexes = set(range(len(bins)))
+    covered_set = set(covered_indexes)
+    if covered_set != expected_indexes or len(covered_indexes) != len(covered_set):
+        missing = sorted(expected_indexes - covered_set)
+        duplicate = sorted(index for index in covered_indexes if covered_indexes.count(index) > 1)
+        raise ValueError(
+            "bin_groups must cover every configured source bin exactly once; "
+            f"missing_source_bin_indexes={[i + 1 for i in missing]}, "
+            f"duplicate_source_bin_indexes={[i + 1 for i in duplicate]}"
+        )
+    return label_map
+
+
+def _apply_group_label_map(labels: pd.Series, label_map: dict[str, Any]) -> pd.Series:
+    if not label_map:
+        return labels
+    return labels.map(lambda value: label_map.get(_normalize_bin_label(value), value) if not pd.isna(value) else value)
+
+
 def apply_equal_frequency_binning(
     df: pd.DataFrame,
     score_field: str,
@@ -337,39 +439,117 @@ def apply_equal_frequency_binning(
     return out
 
 
-def apply_score_binning(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.DataFrame:
+def apply_manual_threshold_binning(
+    df: pd.DataFrame,
+    score_field: str,
+    bin_field: str,
+    bins: list[dict[str, Any]],
+    bin_groups: list[Any] | None,
+    null_values: list[Any] | None,
+    else_label: Any,
+    label_type: str | None,
+) -> pd.DataFrame:
     out = df.copy()
-    for score_cfg in cfg.get("score_binning", {}).get("scores", []):
-        score_field = score_cfg.get("score_field")
-        bin_field = score_cfg.get("bin_field")
-        if not score_field or not bin_field:
-            logger.warning(f"Invalid score config skipped: {score_cfg}")
-            continue
+    if score_field not in out.columns:
+        out[bin_field] = pd.NA
+        return out
+    if not bins:
+        raise ValueError(f"Manual threshold binning requires bins: score_field={score_field}")
 
+    score = pd.to_numeric(out[score_field], errors="coerce")
+    labels = pd.Series(pd.NA, index=out.index, dtype="object")
+    special_values = _coerce_numeric_values(null_values)
+    special_mask = score.isin(special_values) if special_values else pd.Series(False, index=out.index)
+
+    for value in special_values:
+        labels = labels.mask(score.eq(value), value)
+
+    normal_mask = score.notna() & ~special_mask
+    last_index = len(bins) - 1
+    for index, bin_cfg in enumerate(bins):
+        label = bin_cfg.get("label")
+        min_score = bin_cfg.get("min_score", float("-inf"))
+        max_score = bin_cfg.get("max_score", float("inf"))
+        if index == last_index:
+            matched = normal_mask & score.ge(min_score) & score.le(max_score)
+        else:
+            matched = normal_mask & score.ge(min_score) & score.lt(max_score)
+        labels = labels.mask(matched & labels.isna(), label)
+
+    unmatched_mask = normal_mask & labels.isna()
+    if else_label is not None:
+        labels = labels.mask(unmatched_mask, else_label)
+
+    labels = _apply_group_label_map(labels, _build_group_label_map(bins, bin_groups))
+    out[bin_field] = _cast_bin_label(labels, label_type)
+    return out
+
+
+def _apply_one_score_binning(
+    df: pd.DataFrame,
+    score_cfg: dict[str, Any],
+    binning_mode: str,
+    scheme_name: str,
+    logger,
+) -> pd.DataFrame:
+    score_field = score_cfg.get("score_field")
+    bin_field = score_cfg.get("bin_field")
+    if not score_field or not bin_field:
+        logger.warning(f"Invalid score config skipped: {score_cfg}")
+        return df
+
+    label_type = score_cfg.get("bin_label_type")
+    mode = str(score_cfg.get("binning_mode", binning_mode)).lower()
+    if mode in {"quantile", "equal_frequency", "equal_freq"}:
         bin_count = int(score_cfg.get("bin_count", 5))
-        label_type = score_cfg.get("bin_label_type")
-        bin_labels = _quantile_bin_labels(score_cfg, label_type, bin_count)
         out = apply_equal_frequency_binning(
-            out,
+            df,
             score_field=score_field,
             bin_field=bin_field,
             bin_count=bin_count,
-            bin_labels=bin_labels,
-            special_values=score_cfg.get("special_values", [-1]),
+            bin_labels=_quantile_bin_labels(score_cfg, label_type, bin_count),
+            special_values=score_cfg.get("special_values", score_cfg.get("null_values", [-1])),
             special_label_map=_special_label_map(score_cfg),
             label_type=label_type,
         )
-
-        score = pd.to_numeric(out[score_field], errors="coerce") if score_field in out.columns else pd.Series(dtype=float)
-        normal_cnt = int((score.notna() & ~score.isin(_coerce_numeric_values(score_cfg.get("special_values", [-1])))).sum())
-        special_cnt = int(score.isin(_coerce_numeric_values(score_cfg.get("special_values", [-1]))).sum())
-        null_cnt = int(out[bin_field].isna().sum()) if bin_field in out.columns else len(out)
-        logger.info(
-            "Applied equal-frequency binning: "
-            f"model={score_cfg.get('name', score_field)}, score_field={score_field}, bin_field={bin_field}, "
-            f"bin_count={bin_count:,}, normal_score_cnt={normal_cnt:,}, special_score_cnt={special_cnt:,}, "
-            f"bin_null_cnt={null_cnt:,}"
+        effective_bin_cnt = bin_count
+    elif mode in {"upper_bound", "manual", "threshold", "range"}:
+        bins = score_cfg.get("bins", [])
+        out = apply_manual_threshold_binning(
+            df,
+            score_field=score_field,
+            bin_field=bin_field,
+            bins=bins,
+            bin_groups=score_cfg.get("bin_groups"),
+            null_values=score_cfg.get("null_values", score_cfg.get("special_values", [-1])),
+            else_label=score_cfg.get("else_label"),
+            label_type=label_type,
         )
+        effective_bin_cnt = len(score_cfg.get("bin_groups") or bins)
+    else:
+        raise ValueError(f"Unsupported binning_mode={mode} for score_field={score_field}")
+
+    score = pd.to_numeric(out[score_field], errors="coerce") if score_field in out.columns else pd.Series(dtype=float)
+    special_values = _coerce_numeric_values(score_cfg.get("null_values", score_cfg.get("special_values", [-1])))
+    special_cnt = int(score.isin(special_values).sum()) if not score.empty else 0
+    normal_cnt = int((score.notna() & ~score.isin(special_values)).sum()) if not score.empty else 0
+    null_cnt = int(out[bin_field].isna().sum()) if bin_field in out.columns else len(out)
+    logger.info(
+        "Applied score binning: "
+        f"scheme={scheme_name}, mode={mode}, model={score_cfg.get('name', score_field)}, "
+        f"score_field={score_field}, bin_field={bin_field}, effective_bin_cnt={effective_bin_cnt:,}, "
+        f"normal_score_cnt={normal_cnt:,}, special_score_cnt={special_cnt:,}, bin_null_cnt={null_cnt:,}"
+    )
+    return out
+
+
+def apply_score_binning(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.DataFrame:
+    out = df.copy()
+    for scheme_cfg in _score_binning_schemes(cfg):
+        scheme_name = str(scheme_cfg.get("name", "default"))
+        binning_mode = str(scheme_cfg.get("binning_mode", cfg.get("score_binning", {}).get("binning_mode", "equal_frequency")))
+        for score_cfg in scheme_cfg.get("scores", []):
+            out = _apply_one_score_binning(out, score_cfg, binning_mode, scheme_name, logger)
     return out
 
 
@@ -763,17 +943,25 @@ def _sort_values(values: list[Any]) -> list[Any]:
 
 
 def _configured_bin_order(cfg: dict[str, Any], bin_field: str, fallback: list[Any] | None = None) -> list[Any]:
-    for score_cfg in cfg.get("score_binning", {}).get("scores", []):
-        if score_cfg.get("bin_field") != bin_field:
-            continue
-        labels: list[Any] = []
-        special_labels = [
-            score_cfg.get("special_label_map", {}).get(value, value)
-            for value in score_cfg.get("special_values", [])
-        ]
-        labels.extend(special_labels)
-        labels.extend(score_cfg.get("bin_labels", list(range(1, int(score_cfg.get("bin_count", 5)) + 1))))
-        return _sort_values(labels)
+    for scheme_cfg in _score_binning_schemes(cfg):
+        for score_cfg in scheme_cfg.get("scores", []):
+            if score_cfg.get("bin_field") != bin_field:
+                continue
+            labels: list[Any] = []
+            special_values = score_cfg.get("special_values", score_cfg.get("null_values", []))
+            labels.extend([score_cfg.get("special_label_map", {}).get(value, value) for value in special_values])
+
+            mode = str(score_cfg.get("binning_mode", scheme_cfg.get("binning_mode", ""))).lower()
+            if mode in {"quantile", "equal_frequency", "equal_freq"}:
+                labels.extend(score_cfg.get("bin_labels", list(range(1, int(score_cfg.get("bin_count", 5)) + 1))))
+            else:
+                bins = score_cfg.get("bins", [])
+                group_map = _build_group_label_map(bins, score_cfg.get("bin_groups"))
+                labels.extend(group_map.values())
+                else_label = score_cfg.get("else_label")
+                if else_label is not None:
+                    labels.append(group_map.get(_normalize_bin_label(else_label), else_label))
+            return _sort_values(labels)
     return list(fallback or [1, 2, 3, 4, 5])
 
 
@@ -943,6 +1131,91 @@ def _build_metric_pivot(df: pd.DataFrame, cfg: dict[str, Any], row_bin: str, col
     return pd.DataFrame(records)
 
 
+def _risk_perf_scheme_outputs(cfg: dict[str, Any], default_row_bin: str, default_column_bin: str) -> list[dict[str, Any]]:
+    binning_cfg = cfg.get("score_binning", {})
+    schemes_by_name = _score_binning_scheme_by_name(cfg)
+    configured_names = binning_cfg.get("risk_perf_schemes")
+    if configured_names:
+        selected = [schemes_by_name[name] for name in configured_names if name in schemes_by_name]
+    else:
+        default_scheme = binning_cfg.get("default_scheme")
+        selected = [schemes_by_name[default_scheme]] if default_scheme in schemes_by_name else _score_binning_schemes(cfg)[:1]
+
+    outputs: list[dict[str, Any]] = []
+    for index, scheme_cfg in enumerate(selected):
+        scheme_name = str(scheme_cfg.get("name", f"scheme_{index + 1}"))
+        outputs.append(
+            {
+                "title": scheme_cfg.get("title", scheme_name),
+                "sheet_name": "risk_perf" if index == 0 else f"risk_perf_{scheme_name}",
+                "row_bin": scheme_cfg.get("row_bin_field", default_row_bin),
+                "column_bin": scheme_cfg.get("column_bin_field", default_column_bin),
+            }
+        )
+    return outputs
+
+
+def _write_risk_perf_sheet(
+    wb: Workbook,
+    sheet_name: str,
+    title_prefix: str,
+    df: pd.DataFrame,
+    cfg: dict[str, Any],
+    row_bin: str,
+    column_bin: str,
+    metrics: list[str],
+) -> None:
+    ws = wb.create_sheet(sheet_name[:31])
+    current_row = 1
+    _style_metric_title(ws.cell(row=current_row, column=1, value=f"{title_prefix} - 全量申请样本交叉分布"))
+    current_row += 1
+    pivot = _build_metric_pivot(df, cfg, row_bin, column_bin, "sample_cnt")
+    row_count, col_count = _write_dataframe(ws, pivot, current_row)
+    _style_table(ws, current_row, row_count, col_count)
+    _apply_pivot_number_format(ws, current_row, row_count, col_count, "sample_cnt")
+    current_row += row_count + 2
+
+    for metric in metrics:
+        _style_metric_title(ws.cell(row=current_row, column=1, value=f"{title_prefix} - {metric}"))
+        current_row += 1
+        pivot = _build_metric_pivot(df, cfg, row_bin, column_bin, metric)
+        row_count, col_count = _write_dataframe(ws, pivot, current_row)
+        _style_table(ws, current_row, row_count, col_count)
+        _apply_pivot_number_format(ws, current_row, row_count, col_count, metric)
+        current_row += row_count + 2
+    _auto_width(ws)
+
+
+def _write_metric_group_sheet(
+    wb: Workbook,
+    sheet_name: str,
+    df: pd.DataFrame,
+    cfg: dict[str, Any],
+    row_bin: str,
+    column_bin: str,
+    metrics: list[str],
+) -> None:
+    ws = wb.create_sheet(sheet_name[:31])
+    current_row = 1
+    for metric in metrics:
+        _style_metric_title(ws.cell(row=current_row, column=1, value=metric))
+        current_row += 1
+        pivot = _build_metric_pivot(df, cfg, row_bin, column_bin, metric)
+        row_count, col_count = _write_dataframe(ws, pivot, current_row)
+        _style_table(ws, current_row, row_count, col_count)
+        _apply_pivot_number_format(ws, current_row, row_count, col_count, metric)
+        current_row += row_count + 2
+    _auto_width(ws)
+
+
+def _deal_sample_df(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.DataFrame:
+    deal_col = cfg.get("conversion", {}).get("output_fields", {}).get("deal_flag", "is_deal_application")
+    if deal_col not in df.columns:
+        logger.warning(f"Deal sample flag missing; profile_deal_sample will be empty: {deal_col}")
+        return df.iloc[0:0].copy()
+    return df[pd.to_numeric(df[deal_col], errors="coerce").eq(1)].copy()
+
+
 def export_risk_performance_workbook(
     output_path: Path,
     df: pd.DataFrame,
@@ -973,17 +1246,31 @@ def export_risk_performance_workbook(
     _auto_width(ws)
 
     for category, metrics in METRIC_GROUPS.items():
-        ws = wb.create_sheet(category)
-        current_row = 1
-        for metric in metrics:
-            _style_metric_title(ws.cell(row=current_row, column=1, value=metric))
-            current_row += 1
-            pivot = _build_metric_pivot(df, cfg, row_bin, column_bin, metric)
-            row_count, col_count = _write_dataframe(ws, pivot, current_row)
-            _style_table(ws, current_row, row_count, col_count)
-            _apply_pivot_number_format(ws, current_row, row_count, col_count, metric)
-            current_row += row_count + 2
-        _auto_width(ws)
+        if category == "risk_perf":
+            for scheme_output in _risk_perf_scheme_outputs(cfg, row_bin, column_bin):
+                _write_risk_perf_sheet(
+                    wb=wb,
+                    sheet_name=scheme_output["sheet_name"],
+                    title_prefix=scheme_output["title"],
+                    df=df,
+                    cfg=cfg,
+                    row_bin=scheme_output["row_bin"],
+                    column_bin=scheme_output["column_bin"],
+                    metrics=metrics,
+                )
+            continue
+
+        _write_metric_group_sheet(wb, category, df, cfg, row_bin, column_bin, metrics)
+        if category == "profile":
+            _write_metric_group_sheet(
+                wb,
+                "profile_deal_sample",
+                _deal_sample_df(df, cfg, logger),
+                cfg,
+                row_bin,
+                column_bin,
+                metrics,
+            )
 
     raw_outputs = {
         "raw_cross_metrics": calculate_group_metrics(df, [row_bin, column_bin], cfg),
