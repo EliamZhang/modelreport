@@ -188,9 +188,9 @@ def _score_binning_schemes(cfg: dict[str, Any]) -> list[dict[str, Any]]:
         return list(schemes)
     return [
         {
-            "name": binning_cfg.get("default_scheme", "auto"),
-            "title": binning_cfg.get("title", binning_cfg.get("default_scheme", "auto")),
-            "binning_mode": binning_cfg.get("binning_mode", "equal_frequency"),
+            "name": binning_cfg.get("default_scheme", "manual"),
+            "title": binning_cfg.get("title", binning_cfg.get("default_scheme", "manual")),
+            "binning_mode": binning_cfg.get("binning_mode", "manual"),
             "scores": binning_cfg.get("scores", []),
         }
     ]
@@ -298,23 +298,6 @@ def _coerce_numeric_values(values: list[Any] | None) -> list[float]:
     if not values:
         return []
     return pd.to_numeric(pd.Series(values), errors="coerce").dropna().tolist()
-
-
-def _quantile_bin_labels(score_cfg: dict[str, Any], label_type: str | None, bin_count: int) -> list[Any]:
-    configured_labels = score_cfg.get("bin_labels")
-    if configured_labels:
-        labels = list(configured_labels)
-    elif label_type == "float":
-        labels = [float(i) for i in range(1, bin_count + 1)]
-    else:
-        labels = list(range(1, bin_count + 1))
-    if len(labels) != bin_count:
-        raise ValueError(f"bin_labels length must equal bin_count={bin_count}, got {len(labels)}")
-    return labels
-
-
-def _special_label_map(score_cfg: dict[str, Any]) -> dict[float, Any]:
-    return {float(key): value for key, value in score_cfg.get("special_label_map", {}).items()}
 
 
 def _normalize_bin_label(value: Any) -> str:
@@ -500,20 +483,7 @@ def _apply_one_score_binning(
 
     label_type = score_cfg.get("bin_label_type")
     mode = str(score_cfg.get("binning_mode", binning_mode)).lower()
-    if mode in {"quantile", "equal_frequency", "equal_freq"}:
-        bin_count = int(score_cfg.get("bin_count", 5))
-        out = apply_equal_frequency_binning(
-            df,
-            score_field=score_field,
-            bin_field=bin_field,
-            bin_count=bin_count,
-            bin_labels=_quantile_bin_labels(score_cfg, label_type, bin_count),
-            special_values=score_cfg.get("special_values", score_cfg.get("null_values", [-1])),
-            special_label_map=_special_label_map(score_cfg),
-            label_type=label_type,
-        )
-        effective_bin_cnt = bin_count
-    elif mode in {"upper_bound", "manual", "threshold", "range"}:
+    if mode in {"upper_bound", "manual", "threshold", "range"}:
         bins = score_cfg.get("bins", [])
         out = apply_manual_threshold_binning(
             df,
@@ -527,7 +497,10 @@ def _apply_one_score_binning(
         )
         effective_bin_cnt = len(score_cfg.get("bin_groups") or bins)
     else:
-        raise ValueError(f"Unsupported binning_mode={mode} for score_field={score_field}")
+        raise ValueError(
+            f"Unsupported binning_mode={mode} for score_field={score_field}; "
+            "only manual threshold binning is supported"
+        )
 
     score = pd.to_numeric(out[score_field], errors="coerce") if score_field in out.columns else pd.Series(dtype=float)
     special_values = _coerce_numeric_values(score_cfg.get("null_values", score_cfg.get("special_values", [-1])))
@@ -547,7 +520,7 @@ def apply_score_binning(df: pd.DataFrame, cfg: dict[str, Any], logger) -> pd.Dat
     out = df.copy()
     for scheme_cfg in _score_binning_schemes(cfg):
         scheme_name = str(scheme_cfg.get("name", "default"))
-        binning_mode = str(scheme_cfg.get("binning_mode", cfg.get("score_binning", {}).get("binning_mode", "equal_frequency")))
+        binning_mode = str(scheme_cfg.get("binning_mode", cfg.get("score_binning", {}).get("binning_mode", "manual")))
         for score_cfg in scheme_cfg.get("scores", []):
             out = _apply_one_score_binning(out, score_cfg, binning_mode, scheme_name, logger)
     return out
@@ -952,15 +925,18 @@ def _configured_bin_order(cfg: dict[str, Any], bin_field: str, fallback: list[An
             labels.extend([score_cfg.get("special_label_map", {}).get(value, value) for value in special_values])
 
             mode = str(score_cfg.get("binning_mode", scheme_cfg.get("binning_mode", ""))).lower()
-            if mode in {"quantile", "equal_frequency", "equal_freq"}:
-                labels.extend(score_cfg.get("bin_labels", list(range(1, int(score_cfg.get("bin_count", 5)) + 1))))
-            else:
+            if mode in {"upper_bound", "manual", "threshold", "range"}:
                 bins = score_cfg.get("bins", [])
                 group_map = _build_group_label_map(bins, score_cfg.get("bin_groups"))
                 labels.extend(group_map.values())
                 else_label = score_cfg.get("else_label")
                 if else_label is not None:
                     labels.append(group_map.get(_normalize_bin_label(else_label), else_label))
+            else:
+                raise ValueError(
+                    f"Unsupported binning_mode={mode} for bin_field={bin_field}; "
+                    "only manual threshold binning is supported"
+                )
             return _sort_values(labels)
     return list(fallback or [1, 2, 3, 4, 5])
 

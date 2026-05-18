@@ -12,8 +12,8 @@ from model_bin_analysis import (
 )
 
 
-PRIMARY_BIN = "primary_model_score_bin"
-COMPARISON_BIN = "comparison_model_score_bin"
+PRIMARY_BIN = "primary_model_score_manual_bin"
+COMPARISON_BIN = "comparison_model_score_manual_bin"
 
 
 def main() -> None:

@@ -68,17 +68,22 @@ config.py
 Current rule for both models:
 
 ```python
-"bin_count": 5,
-"bin_labels": [1, 2, 3, 4, 5],
-"special_values": [-1],
-"special_label_map": {-1: -1},
+"binning_mode": "upper_bound",
+"bin_groups": [
+    {"label": 1, "source_bin_indexes": [1, 2]},
+    {"label": 2, "source_bin_indexes": [3, 4]},
+    {"label": 3, "source_bin_indexes": [5, 6]},
+    {"label": 4, "source_bin_indexes": [7, 8]},
+    {"label": 5, "source_bin_indexes": [9, 10]},
+],
+"null_values": [-1],
 ```
 
 Rules:
 
-- Model scores use equal-frequency bins.
-- `-1` is kept as a standalone bin and is not included in equal-frequency cutting.
-- Normal bins are cut from non-null, non-special scores, with sample counts kept as even as possible.
+- Model scores only use manual threshold bins configured in `config.py`.
+- `-1` is kept as a standalone special value and does not enter manual interval matching.
+- Cross-bin analysis only uses the manual primary/comparison bin fields.
 
 User profile metrics are configured under:
 
