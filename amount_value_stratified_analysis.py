@@ -1,10 +1,14 @@
 """同额度分层验证（汇报文档第六节）：价值信号在额度之外。
 
 分层口径：
-- 平均收入与样本数交叉表：按申请金额（requested_loan_amount）分层，
+- 平均收入、可支配盈余与样本数交叉表：按申请金额（requested_loan_amount）分层，
   控制的是客户自己申请的额度量级；
-- 3M30 违约风险交叉表：按总额度（total_amount）分层，
+- 3M30 违约风险、可支配盈余交叉表：按总额度（total_amount）分层，
   控制的是实际授信额度（与"模型是否在学习历史额度策略"的质疑对应）。
+
+可支配盈余（net_surplus）：收入扣除支出后的可支配盈余，全样本 100% 覆盖
+（含未放款申请），故总额度口径的盈余表可覆盖全部 6 个额度区间，
+弥补 3M30 在高额度段无有效观察的缺口。
 
 分段：证据核心区按固定 500 步长切 500-2500；稀疏尾部合并为 2500-5000、5000+
 （独立产品档）两段；0-500 无样本（申请金额下限 500）。
@@ -13,8 +17,12 @@
 
 输出（写入 output/model_analysis_20260429/）：
 - amount_value_stratified_pivot.xlsx
-    Sheet「样本数-申请金额 / 平均收入-申请金额 / 3M30逾期率-总额度 / 3M30有效样本数-总额度」
+    Sheet「样本数-申请金额 / 平均收入-申请金额 / 平均可支配盈余-申请金额 /
+    平均可支配盈余-成交样本 / 3M30逾期率-总额度 / 3M30有效样本数-总额度 /
+    平均可支配盈余-总额度」
 - amount_value_income_by_bin.png     平均收入多线图（X=申请金额区间）
+- amount_value_surplus_by_bin.png    平均可支配盈余多线图（X=申请金额区间）
+- amount_value_surplus_ta_by_bin.png 平均可支配盈余多线图（X=总额度区间）
 - amount_value_duedate30_by_bin.png  3M30逾期率多线图（X=总额度区间）
 
 说明：3M30 逾期标志仅对放款后有 3 个月表现期的申请有值（全样本中仅约 1.3 万条，
@@ -60,11 +68,15 @@ BIN_LABELS = [1, 2, 3, 4, 5]
 
 CNT_METRIC = "sample_cnt"
 INCOME_METRIC = "avg_total_income"
+SURPLUS_METRIC = "avg_net_surplus"
+DEAL_FLAG = "is_deal_application"
 RISK_METRIC = "duedate_3m_30_bad_rate"
 RISK_VALID_METRIC = "duedate_3m_30_valid_cnt"
 
 OUTPUT_XLSX = "amount_value_stratified_pivot.xlsx"
 OUTPUT_INCOME_PNG = "amount_value_income_by_bin.png"
+OUTPUT_SURPLUS_PNG = "amount_value_surplus_by_bin.png"
+OUTPUT_SURPLUS_TA_PNG = "amount_value_surplus_ta_by_bin.png"
 OUTPUT_RISK_PNG = "amount_value_duedate30_by_bin.png"
 
 
@@ -151,6 +163,20 @@ def main() -> None:
     col_risk = calculate_group_metrics(df, [PRIMARY_BIN], cfg, ["risk"])
     grand_risk = calculate_group_metrics(df, [], cfg, ["risk"])
 
+    # 可支配盈余按总额度分层的均值组（net_surplus 全样本 100% 覆盖，6 个区间均可计算）
+    long_surplus_ta = calculate_group_metrics(df, [RISK_AMOUNT_BUCKET, PRIMARY_BIN], cfg, ["mean"])
+    row_surplus_ta = calculate_group_metrics(df, [RISK_AMOUNT_BUCKET], cfg, ["mean"])
+    col_surplus_ta = calculate_group_metrics(df, [PRIMARY_BIN], cfg, ["mean"])
+    grand_surplus_ta = calculate_group_metrics(df, [], cfg, ["mean"])
+
+    # 成交（放款）子样本上的可支配盈余 × 申请金额交叉表（口径与表4 一致，样本替换为已放款申请）
+    deal_df = df[df[DEAL_FLAG].astype(bool)]
+    logger.info(f"deal sample: n={len(deal_df):,}")
+    long_surplus_deal = calculate_group_metrics(deal_df, [AMOUNT_BUCKET, PRIMARY_BIN], cfg, ["mean"])
+    row_surplus_deal = calculate_group_metrics(deal_df, [AMOUNT_BUCKET], cfg, ["mean"])
+    col_surplus_deal = calculate_group_metrics(deal_df, [PRIMARY_BIN], cfg, ["mean"])
+    grand_surplus_deal = calculate_group_metrics(deal_df, [], cfg, ["mean"])
+
     bucket_counts = row_income.set_index(AMOUNT_BUCKET)[CNT_METRIC]
     for bucket in bucket_counts.index:
         logger.info(f"requested amount bucket {bucket}: n={int(bucket_counts[bucket]):,}")
@@ -165,22 +191,40 @@ def main() -> None:
 
     cnt_pivot = build_pivot(long_income, row_income, col_income, grand_income, CNT_METRIC, AMOUNT_BUCKET)
     income_pivot = build_pivot(long_income, row_income, col_income, grand_income, INCOME_METRIC, AMOUNT_BUCKET)
+    surplus_pivot = build_pivot(long_income, row_income, col_income, grand_income, SURPLUS_METRIC, AMOUNT_BUCKET)
+    surplus_ta_pivot = build_pivot(long_surplus_ta, row_surplus_ta, col_surplus_ta, grand_surplus_ta, SURPLUS_METRIC, RISK_AMOUNT_BUCKET)
+    surplus_deal_pivot = build_pivot(long_surplus_deal, row_surplus_deal, col_surplus_deal, grand_surplus_deal, SURPLUS_METRIC, AMOUNT_BUCKET)
     risk_pivot = build_pivot(long_risk, row_risk, col_risk, grand_risk, RISK_METRIC, RISK_AMOUNT_BUCKET)
     risk_valid_pivot = build_pivot(long_risk, row_risk, col_risk, grand_risk, RISK_VALID_METRIC, RISK_AMOUNT_BUCKET)
+
+    # 稳健性核对：均值受极端值影响，同时输出中位数（不进 xlsx，日志核对趋势是否一致）
+    surplus_median = (
+        df.groupby([AMOUNT_BUCKET, PRIMARY_BIN], observed=True)["net_surplus"]
+        .median()
+        .unstack(PRIMARY_BIN)
+    )
+    logger.info("net_surplus 中位数核对（申请金额口径）：")
+    logger.info("\n" + surplus_median.round(1).to_string())
 
     xlsx_path = out_dir / OUTPUT_XLSX
     with pd.ExcelWriter(xlsx_path, engine="openpyxl") as writer:
         cnt_pivot.to_excel(writer, sheet_name="样本数-申请金额")
         income_pivot.to_excel(writer, sheet_name="平均收入-申请金额")
+        surplus_pivot.to_excel(writer, sheet_name="平均可支配盈余-申请金额")
         risk_pivot.to_excel(writer, sheet_name="3M30逾期率-总额度")
         risk_valid_pivot.to_excel(writer, sheet_name="3M30有效样本数-总额度")
+        surplus_ta_pivot.to_excel(writer, sheet_name="平均可支配盈余-总额度")
+        surplus_deal_pivot.to_excel(writer, sheet_name="平均可支配盈余-成交样本")
     format_workbook(
         xlsx_path,
         {
             "样本数-申请金额": "#,##0",
             "平均收入-申请金额": "#,##0.0",
+            "平均可支配盈余-申请金额": "#,##0.0",
             "3M30逾期率-总额度": "0.00%",
             "3M30有效样本数-总额度": "#,##0",
+            "平均可支配盈余-总额度": "#,##0.0",
+            "平均可支配盈余-成交样本": "#,##0.0",
         },
     )
     logger.info(f"workbook written: {xlsx_path}")
@@ -191,6 +235,20 @@ def main() -> None:
         "平均收入",
         "申请金额区间",
         out_dir / OUTPUT_INCOME_PNG,
+    )
+    plot_metric(
+        surplus_pivot.drop(index="合计", columns="合计"),
+        "各申请金额区间内不同价值分箱的平均可支配盈余",
+        "平均可支配盈余(net_surplus)",
+        "申请金额区间",
+        out_dir / OUTPUT_SURPLUS_PNG,
+    )
+    plot_metric(
+        surplus_ta_pivot.drop(index="合计", columns="合计"),
+        "各总额度区间内不同价值分箱的平均可支配盈余",
+        "平均可支配盈余(net_surplus)",
+        "总额度区间",
+        out_dir / OUTPUT_SURPLUS_TA_PNG,
     )
     plot_metric(
         risk_pivot.drop(index="合计", columns="合计"),
