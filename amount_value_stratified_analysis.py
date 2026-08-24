@@ -18,8 +18,8 @@
 输出（写入 output/model_analysis_20260429/）：
 - amount_value_stratified_pivot.xlsx
     Sheet「样本数-申请金额 / 平均收入-申请金额 / 平均可支配盈余-申请金额 /
-    平均可支配盈余-成交样本 / 3M30逾期率-总额度 / 3M30有效样本数-总额度 /
-    平均可支配盈余-总额度」
+    平均可支配盈余-成交样本 / 平均支出-申请样本 / 平均支出-成交样本 /
+    3M30逾期率-总额度 / 3M30有效样本数-总额度 / 平均可支配盈余-总额度」
 - amount_value_income_by_bin.png     平均收入多线图（X=申请金额区间）
 - amount_value_surplus_by_bin.png    平均可支配盈余多线图（X=申请金额区间）
 - amount_value_surplus_ta_by_bin.png 平均可支配盈余多线图（X=总额度区间）
@@ -69,6 +69,8 @@ BIN_LABELS = [1, 2, 3, 4, 5]
 CNT_METRIC = "sample_cnt"
 INCOME_METRIC = "avg_total_income"
 SURPLUS_METRIC = "avg_net_surplus"
+EXPENSE_FIELD = "total_expenses"
+EXPENSE_METRIC = "avg_total_expenses"
 DEAL_FLAG = "is_deal_application"
 RISK_METRIC = "duedate_3m_30_bad_rate"
 RISK_VALID_METRIC = "duedate_3m_30_valid_cnt"
@@ -131,6 +133,33 @@ def plot_metric(df: pd.DataFrame, title: str, ylabel: str, xlabel: str, path: Pa
     plt.close(fig)
 
 
+def build_mean_metric_pivot(
+    df: pd.DataFrame,
+    bucket_field: str,
+    metric_field: str,
+    metric_name: str,
+) -> pd.DataFrame:
+    """手动计算数值字段按（区间 × 价值分箱）分层的均值透视。
+
+    total_expenses 未注册进 config 的 mean_metrics，为避免改动共享配置
+    影响其他脚本，在此直接按均值计算；结构（long/row/col/grand + 合计行列）
+    与盈余、收入透视一致。
+    """
+
+    def grp_mean(gcols: list[str]) -> pd.DataFrame:
+        return (
+            df.groupby(gcols, observed=True)[metric_field]
+            .mean()
+            .reset_index(name=metric_name)
+        )
+
+    long = grp_mean([bucket_field, PRIMARY_BIN])
+    row = grp_mean([bucket_field])
+    col = grp_mean([PRIMARY_BIN])
+    grand = pd.DataFrame([{metric_name: df[metric_field].mean()}])
+    return build_pivot(long, row, col, grand, metric_name, bucket_field)
+
+
 def main() -> None:
     plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei"]
     plt.rcParams["axes.unicode_minus"] = False
@@ -177,6 +206,17 @@ def main() -> None:
     col_surplus_deal = calculate_group_metrics(deal_df, [PRIMARY_BIN], cfg, ["mean"])
     grand_surplus_deal = calculate_group_metrics(deal_df, [], cfg, ["mean"])
 
+    # 支出（total_expenses）交叉表：全量申请样本与成交样本各一张（与表4/表5 同架构）
+    expense_pivot = build_mean_metric_pivot(df, AMOUNT_BUCKET, EXPENSE_FIELD, EXPENSE_METRIC)
+    expense_deal_pivot = build_mean_metric_pivot(deal_df, AMOUNT_BUCKET, EXPENSE_FIELD, EXPENSE_METRIC)
+    expense_median = (
+        df.groupby([AMOUNT_BUCKET, PRIMARY_BIN], observed=True)[EXPENSE_FIELD]
+        .median()
+        .unstack(PRIMARY_BIN)
+    )
+    logger.info("total_expenses 中位数核对（申请样本）：")
+    logger.info("\n" + expense_median.round(1).to_string())
+
     bucket_counts = row_income.set_index(AMOUNT_BUCKET)[CNT_METRIC]
     for bucket in bucket_counts.index:
         logger.info(f"requested amount bucket {bucket}: n={int(bucket_counts[bucket]):,}")
@@ -194,6 +234,8 @@ def main() -> None:
     surplus_pivot = build_pivot(long_income, row_income, col_income, grand_income, SURPLUS_METRIC, AMOUNT_BUCKET)
     surplus_ta_pivot = build_pivot(long_surplus_ta, row_surplus_ta, col_surplus_ta, grand_surplus_ta, SURPLUS_METRIC, RISK_AMOUNT_BUCKET)
     surplus_deal_pivot = build_pivot(long_surplus_deal, row_surplus_deal, col_surplus_deal, grand_surplus_deal, SURPLUS_METRIC, AMOUNT_BUCKET)
+    expense_pivot = build_mean_metric_pivot(df, AMOUNT_BUCKET, EXPENSE_FIELD, EXPENSE_METRIC)
+    expense_deal_pivot = build_mean_metric_pivot(deal_df, AMOUNT_BUCKET, EXPENSE_FIELD, EXPENSE_METRIC)
     risk_pivot = build_pivot(long_risk, row_risk, col_risk, grand_risk, RISK_METRIC, RISK_AMOUNT_BUCKET)
     risk_valid_pivot = build_pivot(long_risk, row_risk, col_risk, grand_risk, RISK_VALID_METRIC, RISK_AMOUNT_BUCKET)
 
@@ -215,6 +257,8 @@ def main() -> None:
         risk_valid_pivot.to_excel(writer, sheet_name="3M30有效样本数-总额度")
         surplus_ta_pivot.to_excel(writer, sheet_name="平均可支配盈余-总额度")
         surplus_deal_pivot.to_excel(writer, sheet_name="平均可支配盈余-成交样本")
+        expense_pivot.to_excel(writer, sheet_name="平均支出-申请样本")
+        expense_deal_pivot.to_excel(writer, sheet_name="平均支出-成交样本")
     format_workbook(
         xlsx_path,
         {
@@ -225,6 +269,8 @@ def main() -> None:
             "3M30有效样本数-总额度": "#,##0",
             "平均可支配盈余-总额度": "#,##0.0",
             "平均可支配盈余-成交样本": "#,##0.0",
+            "平均支出-申请样本": "#,##0.0",
+            "平均支出-成交样本": "#,##0.0",
         },
     )
     logger.info(f"workbook written: {xlsx_path}")

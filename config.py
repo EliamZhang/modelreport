@@ -116,6 +116,7 @@ CONFIG = {
                 "gross_surplus",
                 "net_surplus",
                 "total_income",
+                "total_expenses",
                 "requested_loan_amount",
                 "total_amount",
                 "age",
