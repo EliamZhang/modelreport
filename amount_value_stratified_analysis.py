@@ -39,8 +39,16 @@ from model_bin_analysis import (
 PRIMARY_BIN = "primary_model_score_manual_bin"
 AMOUNT_FIELD = "total_amount"
 AMOUNT_BUCKET = "amount_bucket"
-STEP = 500
-TAIL_START = 5000
+# 证据核心区（3M30 有效样本所在）按固定 500 步长：500-2500；
+# 稀疏尾部合并：2500-5000 一段、5000+（独立产品档）一段；0-500 仅 2 样本不纳入。
+AMOUNT_BUCKETS = [
+    (500, 1000),
+    (1000, 1500),
+    (1500, 2000),
+    (2000, 2500),
+    (2500, 5000),
+    (5000, None),
+]
 BIN_LABELS = [1, 2, 3, 4, 5]
 
 CNT_METRIC = "sample_cnt"
@@ -54,10 +62,9 @@ OUTPUT_RISK_PNG = "amount_value_duedate30_by_bin.png"
 
 
 def build_amount_bucket(amount: pd.Series) -> pd.Series:
-    bins = list(range(0, TAIL_START + STEP, STEP))
-    labels = [f"{i}-{i + STEP}" for i in range(0, TAIL_START, STEP)]
+    bins = [lo for lo, _ in AMOUNT_BUCKETS]
     bins.append(np.inf)
-    labels.append(f"{TAIL_START}+")
+    labels = [f"{lo}-{hi}" if hi else f"{lo}+" for lo, hi in AMOUNT_BUCKETS]
     return pd.cut(amount, bins=bins, labels=labels, right=False, include_lowest=True)
 
 
@@ -122,6 +129,8 @@ def main() -> None:
     df = df[~df[PRIMARY_BIN].isin(special_bins)].copy()
     if special_cnt:
         logger.info(f"excluded {special_cnt:,} rows with special value bin {special_bins}")
+
+    df = df[df[AMOUNT_BUCKET].notna()].copy()  # 排除 0-500 等未落入分段区间的样本
 
     metric_groups = ["sample", "risk", "mean"]
     long = calculate_group_metrics(df, [AMOUNT_BUCKET, PRIMARY_BIN], cfg, metric_groups)
