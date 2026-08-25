@@ -1,0 +1,3827 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>新客资质模型分析报告 · 修订版</title>
+<style>
+    :root {
+      --ink: #102033;
+      --muted: #657286;
+      --line: rgba(16, 32, 51, .10);
+      --card: rgba(255,255,255,.92);
+      --soft: #f5f7fb;
+      --navy: #0b1d33;
+      --navy-2: #142e4c;
+      --teal: #1d7d70;
+      --teal-2: #4fb5a5;
+      --gold: #c69a46;
+      --shadow: 0 22px 60px rgba(13, 32, 54, .12);
+      --shadow-soft: 0 12px 32px rgba(13, 32, 54, .08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.72;
+      background:
+        radial-gradient(circle at top left, rgba(79,181,165,.16), transparent 34rem),
+        radial-gradient(circle at 90% 6%, rgba(198,154,70,.12), transparent 28rem),
+        linear-gradient(180deg, #f7f9fc 0%, #eef2f7 100%);
+    }
+    a { color: inherit; }
+    .page { max-width: 1440px; margin: 0 auto; padding: 28px 28px 64px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      padding: 44px 48px 42px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(11,29,51,.98), rgba(20,46,76,.96) 46%, rgba(29,125,112,.88));
+      box-shadow: var(--shadow);
+      min-height: 360px;
+    }
+    .hero:before {
+      content: "";
+      position: absolute;
+      inset: -35% -10% auto auto;
+      width: 680px;
+      height: 680px;
+      background: radial-gradient(circle, rgba(255,255,255,.18), transparent 68%);
+      transform: rotate(18deg);
+    }
+    .hero:after {
+      content: "";
+      position: absolute;
+      inset: auto auto -90px -80px;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(198,154,70,.28), transparent 70%);
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 1120px; }
+    .eyebrow {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(10px);
+      color: rgba(255,255,255,.86);
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .eyebrow:before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 5px rgba(198,154,70,.18); }
+    .hero h1 {
+      margin: 22px 0 14px;
+      max-width: 980px;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1.08;
+      letter-spacing: -.045em;
+      font-weight: 750;
+    }
+    .hero p {
+      margin: 0;
+      max-width: 900px;
+      color: rgba(255,255,255,.78);
+      font-size: 17px;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .hero-meta span {
+      padding: 9px 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 12px;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.84);
+      font-size: 13px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: -52px;
+      position: relative;
+      z-index: 2;
+      padding: 0 24px;
+    }
+    .kpi {
+      padding: 18px 18px 16px;
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      min-height: 116px;
+    }
+    .kpi small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .kpi strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -.02em;
+      color: var(--navy);
+    }
+    .kpi em {
+      display: block;
+      margin-top: 8px;
+      color: #66768a;
+      font-size: 13px;
+      font-style: normal;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 24px;
+      margin-top: 28px;
+      align-items: start;
+    }
+    .sidebar {
+      position: sticky;
+      top: 18px;
+      background: rgba(255,255,255,.74);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(16,32,51,.08);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: var(--shadow-soft);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+    }
+    .sidebar h3 { margin: 0 0 12px; font-size: 14px; letter-spacing: .08em; color: var(--navy); text-transform: uppercase; }
+    .toc { display: grid; gap: 6px; }
+    .toc a {
+      display: block;
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #536276;
+      border: 1px solid transparent;
+    }
+    .toc a:hover { background: #f3f6fa; color: var(--navy); border-color: rgba(16,32,51,.08); }
+    .toc .toc-h1 { font-weight: 700; color: #22364d; margin-top: 5px; }
+    .toc .toc-h2 { padding-left: 18px; font-size: 12px; }
+    .exec-summary {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .summary-card, .chapter-card {
+      background: var(--card);
+      border: 1px solid rgba(16,32,51,.08);
+      border-radius: 28px;
+      box-shadow: var(--shadow-soft);
+    }
+    .summary-card { padding: 24px; }
+    .summary-card h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: -.02em;
+    }
+    .summary-card p { margin: 0 0 14px; color: #4e5d70; }
+    .pill-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 11px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(29,125,112,.10), rgba(198,154,70,.10));
+      border: 1px solid rgba(29,125,112,.13);
+      color: #25465a;
+      font-size: 13px;
+    }
+    .decision-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+    .decision {
+      position: relative;
+      padding: 16px 16px 15px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(246,248,251,.92));
+      border: 1px solid rgba(16,32,51,.08);
+    }
+    .decision:before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; border-radius: 20px 0 0 20px; background: linear-gradient(180deg, var(--teal), var(--gold)); }
+    .decision b { display: block; margin-bottom: 6px; color: var(--navy); }
+    .decision span { display: block; font-size: 13px; color: #5d697a; line-height: 1.55; }
+    .chapter-card {
+      padding: 28px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .chapter-kicker {
+      color: var(--gold);
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .chapter-title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+    }
+    .chapter-title-row h2 { margin: 4px 0 0; font-size: 28px; line-height: 1.2; letter-spacing: -.03em; }
+    .chapter-title-row span { color: #7b8797; font-size: 12px; white-space: nowrap; }
+    .markdown-body { font-size: 15px; color: #26384d; }
+    .markdown-body h1 {
+      margin: 30px 0 18px;
+      padding-top: 4px;
+      font-size: 28px;
+      letter-spacing: -.025em;
+      color: var(--navy);
+    }
+    .markdown-body h2 {
+      position: relative;
+      margin: 34px 0 14px;
+      padding-left: 16px;
+      font-size: 22px;
+      letter-spacing: -.02em;
+      color: #14283e;
+    }
+    .markdown-body h2:before {
+      content: "";
+      position: absolute;
+      left: 0; top: .45em;
+      width: 5px; height: 1.05em;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--teal), var(--gold));
+    }
+    .markdown-body h3 { margin: 26px 0 12px; color: #1b3148; font-size: 18px; }
+    .markdown-body h4 { margin: 20px 0 10px; color: #26384d; }
+    .markdown-body p { margin: 10px 0 14px; }
+    .markdown-body blockquote {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--gold);
+      background: linear-gradient(90deg, rgba(198,154,70,.10), rgba(255,255,255,.4));
+      border-radius: 14px;
+      color: #4b596c;
+    }
+    .markdown-body hr { border: 0; height: 1px; background: var(--line); margin: 28px 0; }
+    .markdown-body code {
+      padding: 2px 6px;
+      border-radius: 7px;
+      background: rgba(20,46,76,.07);
+      color: #0f5f56;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .92em;
+    }
+    .markdown-body ul, .markdown-body ol { padding-left: 1.3em; }
+    .table-frame {
+      margin: 18px 0 24px;
+      overflow-x: auto;
+      border-radius: 18px;
+      border: 1px solid rgba(16,32,51,.10);
+      box-shadow: 0 12px 30px rgba(13,32,54,.06);
+      background: #fff;
+    }
+    table.data-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      min-width: 680px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    table.data-table th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 12px 12px;
+      color: rgba(255,255,255,.95);
+      text-align: left;
+      font-weight: 680;
+      background: linear-gradient(135deg, #102033 0%, #183957 60%, #1d7d70 100%);
+      border-right: 1px solid rgba(255,255,255,.12);
+      white-space: nowrap;
+    }
+    table.data-table th:first-child { border-top-left-radius: 17px; }
+    table.data-table th:last-child { border-top-right-radius: 17px; border-right: 0; }
+    table.data-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(16,32,51,.07);
+      border-right: 1px solid rgba(16,32,51,.05);
+      vertical-align: top;
+      background-clip: padding-box;
+    }
+    table.data-table tbody tr:nth-child(even) td { background-color: rgba(247,250,252,.62); }
+    table.data-table tbody tr:hover td { background-color: rgba(198,154,70,.10) !important; }
+    table.data-table td:first-child,
+    table.data-table th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      font-weight: 700;
+      box-shadow: 8px 0 16px rgba(16,32,51,.04);
+    }
+    table.data-table td:first-child { background: rgba(255,255,255,.96); color: #18324b; }
+    table.data-table tbody tr:nth-child(even) td:first-child { background: #f8fafc; }
+    table.data-table tr:last-child td { border-bottom: 0; }
+    .heat-cell { transition: background-color .18s ease, color .18s ease; }
+    .heat-cell[data-heat-type="risk"] { color: #4f171d; }
+    .heat-cell[data-heat-type="value"] { color: #123d38; }
+    .heat-cell[data-heat-type="approval"] { color: #17314f; }
+    .heat-cell[data-heat-type="distribution"] { color: #4a3513; }
+    .heat-cell[data-heat-type="model"] { color: #3d3117; }
+    .heat-cell[data-heat-type="neutral"] { color: #24364a; }
+    .section-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(16,32,51,.14), transparent); margin: 28px 0; }
+    .footer {
+      margin-top: 30px;
+      padding: 20px 4px;
+      text-align: center;
+      color: #7a8798;
+      font-size: 13px;
+    }
+    .backtop {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 20;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(16,32,51,.12);
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      color: var(--navy);
+      font-weight: 800;
+    }
+    @media (max-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: auto; max-height: none; }
+      .exec-summary { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .page { padding: 14px 14px 48px; }
+      .hero { padding: 30px 24px 86px; border-radius: 24px; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; padding: 0 10px; margin-top: -62px; }
+      .kpi strong { font-size: 22px; }
+      .chapter-card, .summary-card { padding: 20px; border-radius: 22px; }
+      .chapter-title-row { display: block; }
+      .chapter-title-row span { display: block; margin-top: 8px; white-space: normal; }
+      .decision-grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      body { background: white; }
+      .page { max-width: none; padding: 0; }
+      .hero, .kpi, .summary-card, .chapter-card { box-shadow: none; }
+      .sidebar, .backtop { display: none; }
+      .layout { display: block; }
+      .chapter-card { break-inside: avoid; }
+      table { break-inside: auto; }
+    }
+  </style>
+</head>
+<body>
+<a aria-label="返回顶部" class="backtop" href="#top">↑</a>
+<main class="page" id="top">
+<section class="hero">
+<div class="hero-content">
+<div class="eyebrow">Qualification Model · Analysis Report</div>
+<h1>新客资质模型分析报告</h1>
+<div class="hero-meta">
+<span>模型：新客资质模型 1.0</span>
+<span>算法：LightGBM</span>
+<span>用途：授信 / 定价 / 审批 / 客群经营</span>
+<span>生成日期：2026-05-19</span>
+</div>
+</div>
+</section>
+<section aria-label="核心指标" class="kpi-grid">
+<div class="kpi"><small>建模样本</small><strong>56,330</strong><em>目标样本占比 27.12%</em></div>
+<div class="kpi"><small>OOT AUC</small><strong>0.7294</strong><em>跨时间排序稳定</em></div>
+<div class="kpi"><small>OOT KS</small><strong>0.3467</strong><em>区分能力较好</em></div>
+<div class="kpi"><small>Top 10% 目标率</small><strong>63.00%</strong><em>头部识别明显</em></div>
+<div class="kpi"><small>交叉分析样本</small><strong>157,741</strong><em>风险 × 资质视角</em></div>
+<div class="kpi"><small>风险控制客群</small><strong>77,057</strong><em>高风险 × 差资质</em></div>
+</section>
+<section class="layout">
+<aside class="sidebar">
+<h3>Contents</h3>
+<nav class="toc"><a class="toc-h1" href="#chapter-2">Chapter 01 · 交叉分箱效果分析</a>
+<a class="toc-h1" href="#c2-资质模型-风险模型交叉分箱效果分析报告">资质模型 × 风险模型交叉分箱效果分析报告</a>
+
+<a class="toc-h1" href="#c2-风险模型-资质模型联合分层策略总结">风险模型 × 资质模型联合分层策略总结</a>
+<a class="toc-h2" href="#c2-1-联合分层策略矩阵">1. 联合分层策略矩阵</a>
+<a class="toc-h2" href="#c2-2-为什么联合分层成立">2. 为什么联合分层成立</a>
+<a class="toc-h2" href="#c2-3-四类客群的策略含义">3. 四类客群的策略含义</a>
+<a class="toc-h2" href="#c2-4-策略落地建议">4. 策略落地建议</a>
+<a class="toc-h1" href="#c2-二-数据透视表与原始交叉数据">二、数据透视表与原始交叉数据</a>
+<a class="toc-h2" href="#c2-1-资质分箱整体表现透视表">1. 资质分箱整体表现透视表</a>
+<a class="toc-h2" href="#c2-2-风险分箱整体表现透视表">2. 风险分箱整体表现透视表</a>
+<div class="section-divider"></div>
+<a class="toc-h1" href="#chapter-1">Chapter 02 · 模型基础报告</a>
+<a class="toc-h1" href="#c1-新客资质模型-1-0-模型报告">新客资质模型 1.0 模型报告</a>
+<a class="toc-h2" href="#c1-1-报告概述">1. 报告概述</a>
+<a class="toc-h2" href="#c1-2-模型基本信息">2. 模型基本信息</a>
+<a class="toc-h2" href="#c1-3-样本设计">3. 样本设计</a>
+<a class="toc-h2" href="#c1-4-变量体系">4. 变量体系</a>
+<a class="toc-h2" href="#c1-5-变量-iv-表现">5. 变量 IV 表现</a>
+<a class="toc-h2" href="#c1-6-模型方法">6. 模型方法</a>
+<a class="toc-h2" href="#c1-7-模型效果评估">7. 模型效果评估</a>
+<a class="toc-h2" href="#c1-8-模型分箱表现">8. 模型分箱表现</a>
+<a class="toc-h2" href="#c1-9-业务解释">9. 业务解释</a>
+<div class="section-divider"></div>
+<a class="toc-h1" href="#chapter-3">Chapter 03 · 资质分箱画像</a>
+<a class="toc-h1" href="#c3-资质模型分箱画像分析报告">资质模型分箱画像分析报告</a>
+<a class="toc-h2" href="#c3-1-数据结构说明">1. 数据结构说明</a>
+<a class="toc-h2" href="#c3-2-核心结论摘要">2. 核心结论摘要</a>
+<a class="toc-h2" href="#c3-3-资质好人群画像">3. 资质好人群画像</a>
+<a class="toc-h2" href="#c3-4-资质差人群画像">4. 资质差人群画像</a>
+<a class="toc-h2" href="#c3-5-资质好但风险差人群画像">5. 资质好但风险差人群画像</a>
+<a class="toc-h2" href="#c3-6-资质差但风险好人群画像">6. 资质差但风险好人群画像</a>
+<a class="toc-h2" href="#c3-7-可用于后续策略分析的启发">7. 可用于后续策略分析的启发</a>
+</nav>
+</aside>
+<div class="content">
+<section class="chapter-card" id="chapter-2">
+<div class="chapter-kicker">Chapter 01</div>
+<div class="chapter-title-row">
+<h2>资质模型 × 风险模型交叉分箱效果分析报告</h2>
+<span>Source · 粘贴的 markdown (2)</span>
+</div>
+<div class="markdown-body"><h1 id="c2-资质模型-风险模型交叉分箱效果分析报告">资质模型 × 风险模型交叉分箱效果分析报告</h1>
+<blockquote>
+<p>说明：本文按附件中的交叉表方向输出，横轴为风险模型分箱，纵轴为资质模型分箱。资质分箱越大代表资质越差；风险分箱越大代表风险越高。
+说明：下方交叉表仅展示风险1-5、资质1-5及附件中的 Total 行/列；Total 沿用附件口径，不做简单平均或重新加总。</p>
+</blockquote>
+
+<h1 id="c2-风险模型-资质模型联合分层策略总结">风险模型 × 资质模型联合分层策略总结</h1>
+<p><strong>核心结论是：风险模型 + 资质模型可以形成联合分层策略。</strong></p>
+<p>风险模型主要回答“客户风险是否可控”，资质模型主要回答“客户是否具备经营价值、额度承接能力和审批转化潜力”。两者结合后，可以把客群划分为不同策略区域，从而支持提额、降价、自动审批、人工复核、限额、提价和谨慎准入等差异化动作。</p>
+<h2 id="c2-1-联合分层策略矩阵">1. 联合分层策略矩阵</h2>
+<div class="table-frame">
+<table class="data-table">
+<thead>
+<tr>
+<th>客群区域</th>
+<th>低风险：风险1-2</th>
+<th>高风险：风险4-5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>好资质：资质1-2</td>
+<td><strong>优先经营客群</strong><br/>提额 / 降价 / 自动审批</td>
+<td><strong>谨慎经营客群</strong><br/>人工复核 / 小流量验证</td>
+</tr>
+<tr>
+<td>差资质：资质4-5</td>
+<td><strong>收益验证客群</strong><br/>额度控制 / 收益观察</td>
+<td><strong>风险控制客群</strong><br/>限额 / 提价 / 强审核 / 谨慎准入</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>中间风险或中间资质客群不建议直接做强策略，可作为过渡层，结合通过率、成交率、复贷率和利润表现进一步细分。</p>
+<h2 id="c2-2-为什么联合分层成立">2. 为什么联合分层成立</h2>
+<p>从风险模型方向看，风险分箱具备稳定风险排序能力。风险分箱从风险1到风险5，3M30人数逾期率由 5.92% 上升到 22.02%，3M30金额逾期率由 2.61% 上升到 16.04%，通过率由 32.91% 下降到 7.49%。这说明风险模型可以有效识别违约风险，是准入、限额、定价和人工审核的基础。</p>
+<p>从资质模型方向看，资质分箱能够补充识别经营价值和额度承接能力。资质分箱从资质1到资质5，平均收入由 9,176 下降到 5,090，平均总额度由 1,511 下降到 747，通过率由 41.04% 下降到 6.57%。这说明资质模型并不是简单重复风险模型，而是在收入水平、额度承接和审批转化上提供了额外信息。</p>
+<p>因此，风险模型和资质模型的分工是不同的。风险模型更适合控制坏账，资质模型更适合辅助判断客户经营价值。两者结合后，策略不再只是简单的“低风险放开、高风险压降”，而是可以进一步识别哪些客户值得经营、哪些客户需要复核、哪些客户应该控制额度、哪些客户应该优先压降。</p>
+<h2 id="c2-3-四类客群的策略含义">3. 四类客群的策略含义</h2>
+<p><strong>第一类是低风险 + 好资质客群，对应优先经营。</strong><br/>这是最适合优先经营的区域。该客群风险表现较低，同时收入、额度承接能力和审批转化表现较好，可以作为提额、降价、自动审批和通过率提升的优先试点客群。对应风险1-2 × 资质1-2，样本 18,934，占比 12.00%，3M30人数逾期率 6.30%，3M30金额逾期率 3.00%。</p>
+<p><strong>第二类是高风险 + 差资质客群，对应优先风险控制。</strong><br/>这是最需要优先控制的区域。该客群同时处在风险高、资质弱的位置，且样本占比较高，风险暴露较明显。对应风险4-5 × 资质4-5，样本 77,057，占比 48.85%，3M30人数逾期率 22.25%，3M30金额逾期率 15.38%。建议优先采取限额、提价、强人工审核或谨慎准入。</p>
+<p><strong>第三类是高风险 + 好资质客群，对应谨慎经营。</strong><br/>这类客户有一定经营价值，但风险压力已经明显抬升，不能直接按照“好资质”客群放开。风险4-5 × 资质1-2 的 3M30人数逾期率已达到 12.90%，说明资质好并不能完全抵消风险压力。更合适的做法是人工复核、小流量 A/B 测试、差异化额度和风险定价。</p>
+<p><strong>第四类是低风险 + 差资质客群，对应收益验证。</strong><br/>这类客户风险相对可控，但收入、额度承接和审批转化能力偏弱，不适合作为强经营客群。更适合做额度控制和收益验证，重点观察成交率、复贷率和真实收入贡献，而不是直接提额或大规模放量。</p>
+<h2 id="c2-4-策略落地建议">4. 策略落地建议</h2>
+<p>整体策略可以分成两条主线。</p>
+<p>一条是经营提升线，优先从风险1-2 × 资质1-2开始。这个区域风险低、资质好，适合做提额、降价、自动审批和通过率提升。但建议先小流量试点，观察成交率、坏账率、收入和利润变化，再决定是否扩大。</p>
+<p>另一条是风险控制线，优先从风险4-5 × 资质4-5开始。这个区域风险和资质均不占优，且样本占比较高，建议优先回测限额、提价、人工审核和拒绝策略对通过率、坏账、收入和利润的影响。</p>
+<p>对于中间区域，不建议直接做强策略。高风险 + 好资质适合谨慎经营，低风险 + 差资质适合收益验证。后续可以结合月份稳定性、成交率、复贷率和利润表现进一步细分。</p>
+<h1 id="c2-二-数据透视表与原始交叉数据">二、数据透视表与原始交叉数据</h1>
+<h2 id="c2-1-资质分箱整体表现透视表">1. 资质分箱整体表现透视表</h2>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱</th>
+<th style="text-align:right">样本数</th>
+<th style="text-align:right">样本占比</th>
+<th style="text-align:right">3M30人数逾期率</th>
+<th style="text-align:right">1M5人数逾期率</th>
+<th style="text-align:right">3M30金额逾期率</th>
+<th style="text-align:right">1M5金额逾期率</th>
+<th style="text-align:right">平均PTI</th>
+<th style="text-align:right">平均申请金额</th>
+<th style="text-align:right">平均总额度</th>
+<th style="text-align:right">平均收入</th>
+<th style="text-align:right">平均gross surplus</th>
+<th style="text-align:right">平均net surplus</th>
+<th style="text-align:right">通过率</th>
+<th style="text-align:right">自动通过率</th>
+<th style="text-align:right">人工通过率</th>
+<th style="text-align:right">成交率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">13,838</td>
+<td style="text-align:right">8.77%</td>
+<td style="text-align:right">7.05%</td>
+<td style="text-align:right">3.91%</td>
+<td style="text-align:right">3.35%</td>
+<td style="text-align:right">5.03%</td>
+<td style="text-align:right">4.93%</td>
+<td style="text-align:right">2,614</td>
+<td style="text-align:right">1,511</td>
+<td style="text-align:right">9,611</td>
+<td style="text-align:right">1,709</td>
+<td style="text-align:right">1,334</td>
+<td style="text-align:right">41.04%</td>
+<td style="text-align:right">13.00%</td>
+<td style="text-align:right">28.04%</td>
+<td style="text-align:right">83.04%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">16,729</td>
+<td style="text-align:right">10.61%</td>
+<td style="text-align:right">9.46%</td>
+<td style="text-align:right">4.69%</td>
+<td style="text-align:right">5.11%</td>
+<td style="text-align:right">7.05%</td>
+<td style="text-align:right">4.91%</td>
+<td style="text-align:right">2,388</td>
+<td style="text-align:right">1,240</td>
+<td style="text-align:right">7,284</td>
+<td style="text-align:right">1,065</td>
+<td style="text-align:right">745</td>
+<td style="text-align:right">34.40%</td>
+<td style="text-align:right">11.22%</td>
+<td style="text-align:right">23.18%</td>
+<td style="text-align:right">84.69%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">20,966</td>
+<td style="text-align:right">13.29%</td>
+<td style="text-align:right">10.61%</td>
+<td style="text-align:right">6.13%</td>
+<td style="text-align:right">5.95%</td>
+<td style="text-align:right">7.83%</td>
+<td style="text-align:right">4.74%</td>
+<td style="text-align:right">2,193</td>
+<td style="text-align:right">1,069</td>
+<td style="text-align:right">6,366</td>
+<td style="text-align:right">891</td>
+<td style="text-align:right">598</td>
+<td style="text-align:right">27.08%</td>
+<td style="text-align:right">8.97%</td>
+<td style="text-align:right">18.11%</td>
+<td style="text-align:right">84.91%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">26,778</td>
+<td style="text-align:right">16.98%</td>
+<td style="text-align:right">15.91%</td>
+<td style="text-align:right">8.64%</td>
+<td style="text-align:right">9.10%</td>
+<td style="text-align:right">11.55%</td>
+<td style="text-align:right">4.39%</td>
+<td style="text-align:right">2,047</td>
+<td style="text-align:right">910</td>
+<td style="text-align:right">5,682</td>
+<td style="text-align:right">1,042</td>
+<td style="text-align:right">761</td>
+<td style="text-align:right">19.97%</td>
+<td style="text-align:right">6.23%</td>
+<td style="text-align:right">13.74%</td>
+<td style="text-align:right">86.24%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">73,270</td>
+<td style="text-align:right">46.45%</td>
+<td style="text-align:right">22.90%</td>
+<td style="text-align:right">12.43%</td>
+<td style="text-align:right">14.13%</td>
+<td style="text-align:right">17.25%</td>
+<td style="text-align:right">3.93%</td>
+<td style="text-align:right">1,703</td>
+<td style="text-align:right">747</td>
+<td style="text-align:right">3,924</td>
+<td style="text-align:right">358</td>
+<td style="text-align:right">84</td>
+<td style="text-align:right">6.57%</td>
+<td style="text-align:right">1.30%</td>
+<td style="text-align:right">5.27%</td>
+<td style="text-align:right">87.05%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">157,741</td>
+<td style="text-align:right">100.00%</td>
+<td style="text-align:right">13.19%</td>
+<td style="text-align:right">7.04%</td>
+<td style="text-align:right">6.54%</td>
+<td style="text-align:right">8.62%</td>
+<td style="text-align:right">4.60%</td>
+<td style="text-align:right">1,984</td>
+<td style="text-align:right">1,105</td>
+<td style="text-align:right">5,272</td>
+<td style="text-align:right">691</td>
+<td style="text-align:right">394</td>
+<td style="text-align:right">17.32%</td>
+<td style="text-align:right">5.19%</td>
+<td style="text-align:right">12.12%</td>
+<td style="text-align:right">85.11%</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c2-2-风险分箱整体表现透视表">2. 风险分箱整体表现透视表</h2>
+<table class="data-table">
+<thead>
+<tr>
+<th>风险分箱</th>
+<th style="text-align:right">样本数</th>
+<th style="text-align:right">样本占比</th>
+<th style="text-align:right">3M30人数逾期率</th>
+<th style="text-align:right">1M5人数逾期率</th>
+<th style="text-align:right">3M30金额逾期率</th>
+<th style="text-align:right">1M5金额逾期率</th>
+<th style="text-align:right">平均PTI</th>
+<th style="text-align:right">平均申请金额</th>
+<th style="text-align:right">平均总额度</th>
+<th style="text-align:right">平均收入</th>
+<th style="text-align:right">平均gross surplus</th>
+<th style="text-align:right">平均net surplus</th>
+<th style="text-align:right">通过率</th>
+<th style="text-align:right">自动通过率</th>
+<th style="text-align:right">人工通过率</th>
+<th style="text-align:right">成交率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>风险1</td>
+<td style="text-align:right">16,683</td>
+<td style="text-align:right">10.58%</td>
+<td style="text-align:right">5.92%</td>
+<td style="text-align:right">2.82%</td>
+<td style="text-align:right">2.61%</td>
+<td style="text-align:right">3.98%</td>
+<td style="text-align:right">5.19%</td>
+<td style="text-align:right">2,365</td>
+<td style="text-align:right">1,459</td>
+<td style="text-align:right">6,443</td>
+<td style="text-align:right">287</td>
+<td style="text-align:right">-43</td>
+<td style="text-align:right">32.91%</td>
+<td style="text-align:right">9.75%</td>
+<td style="text-align:right">23.16%</td>
+<td style="text-align:right">84.10%</td>
+</tr>
+<tr>
+<td>风险2</td>
+<td style="text-align:right">19,660</td>
+<td style="text-align:right">12.46%</td>
+<td style="text-align:right">7.79%</td>
+<td style="text-align:right">4.39%</td>
+<td style="text-align:right">3.79%</td>
+<td style="text-align:right">5.65%</td>
+<td style="text-align:right">4.89%</td>
+<td style="text-align:right">2,209</td>
+<td style="text-align:right">1,187</td>
+<td style="text-align:right">5,894</td>
+<td style="text-align:right">163</td>
+<td style="text-align:right">-147</td>
+<td style="text-align:right">29.12%</td>
+<td style="text-align:right">9.44%</td>
+<td style="text-align:right">19.68%</td>
+<td style="text-align:right">84.66%</td>
+</tr>
+<tr>
+<td>风险3</td>
+<td style="text-align:right">22,342</td>
+<td style="text-align:right">14.16%</td>
+<td style="text-align:right">11.70%</td>
+<td style="text-align:right">6.91%</td>
+<td style="text-align:right">6.15%</td>
+<td style="text-align:right">8.56%</td>
+<td style="text-align:right">4.47%</td>
+<td style="text-align:right">2,096</td>
+<td style="text-align:right">1,012</td>
+<td style="text-align:right">5,541</td>
+<td style="text-align:right">595</td>
+<td style="text-align:right">306</td>
+<td style="text-align:right">26.47%</td>
+<td style="text-align:right">8.73%</td>
+<td style="text-align:right">17.74%</td>
+<td style="text-align:right">84.33%</td>
+</tr>
+<tr>
+<td>风险4</td>
+<td style="text-align:right">30,660</td>
+<td style="text-align:right">19.44%</td>
+<td style="text-align:right">15.16%</td>
+<td style="text-align:right">9.39%</td>
+<td style="text-align:right">9.21%</td>
+<td style="text-align:right">11.72%</td>
+<td style="text-align:right">4.31%</td>
+<td style="text-align:right">1,965</td>
+<td style="text-align:right">913</td>
+<td style="text-align:right">5,261</td>
+<td style="text-align:right">910</td>
+<td style="text-align:right">623</td>
+<td style="text-align:right">17.40%</td>
+<td style="text-align:right">5.80%</td>
+<td style="text-align:right">11.61%</td>
+<td style="text-align:right">84.86%</td>
+</tr>
+<tr>
+<td>风险5</td>
+<td style="text-align:right">60,891</td>
+<td style="text-align:right">38.60%</td>
+<td style="text-align:right">22.02%</td>
+<td style="text-align:right">12.27%</td>
+<td style="text-align:right">16.04%</td>
+<td style="text-align:right">18.44%</td>
+<td style="text-align:right">4.04%</td>
+<td style="text-align:right">1,791</td>
+<td style="text-align:right">923</td>
+<td style="text-align:right">5,138</td>
+<td style="text-align:right">1,048</td>
+<td style="text-align:right">768</td>
+<td style="text-align:right">7.49%</td>
+<td style="text-align:right">1.53%</td>
+<td style="text-align:right">5.96%</td>
+<td style="text-align:right">87.92%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">157,741</td>
+<td style="text-align:right">100.00%</td>
+<td style="text-align:right">13.19%</td>
+<td style="text-align:right">7.04%</td>
+<td style="text-align:right">6.54%</td>
+<td style="text-align:right">8.62%</td>
+<td style="text-align:right">4.60%</td>
+<td style="text-align:right">1,984</td>
+<td style="text-align:right">1,105</td>
+<td style="text-align:right">5,272</td>
+<td style="text-align:right">691</td>
+<td style="text-align:right">394</td>
+<td style="text-align:right">17.32%</td>
+<td style="text-align:right">5.19%</td>
+<td style="text-align:right">12.12%</td>
+<td style="text-align:right">85.11%</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c2-表格证据-结论一明确有增量区分能力">结论一：明确有增量区分能力 · 原始数据表</h2>
+<p><strong>原始交叉数据表：平均收入</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">8,351</td>
+<td style="text-align:right">9,060</td>
+<td style="text-align:right">10,051</td>
+<td style="text-align:right">13,479</td>
+<td style="text-align:right">19,425</td>
+<td style="text-align:right">9,611</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">6,159</td>
+<td style="text-align:right">6,669</td>
+<td style="text-align:right">7,216</td>
+<td style="text-align:right">8,370</td>
+<td style="text-align:right">10,389</td>
+<td style="text-align:right">7,284</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">5,059</td>
+<td style="text-align:right">5,581</td>
+<td style="text-align:right">6,002</td>
+<td style="text-align:right">6,610</td>
+<td style="text-align:right">8,396</td>
+<td style="text-align:right">6,366</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">4,208</td>
+<td style="text-align:right">4,494</td>
+<td style="text-align:right">5,001</td>
+<td style="text-align:right">5,514</td>
+<td style="text-align:right">7,103</td>
+<td style="text-align:right">5,682</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">3,265</td>
+<td style="text-align:right">3,373</td>
+<td style="text-align:right">3,451</td>
+<td style="text-align:right">3,615</td>
+<td style="text-align:right">4,153</td>
+<td style="text-align:right">3,924</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">6,443</td>
+<td style="text-align:right">5,894</td>
+<td style="text-align:right">5,541</td>
+<td style="text-align:right">5,261</td>
+<td style="text-align:right">5,138</td>
+<td style="text-align:right">5,272</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：平均总额度</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">1,627</td>
+<td style="text-align:right">1,437</td>
+<td style="text-align:right">1,326</td>
+<td style="text-align:right">1,347</td>
+<td style="text-align:right">1,449</td>
+<td style="text-align:right">1,511</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">1,357</td>
+<td style="text-align:right">1,252</td>
+<td style="text-align:right">1,137</td>
+<td style="text-align:right">1,128</td>
+<td style="text-align:right">1,278</td>
+<td style="text-align:right">1,240</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">1,253</td>
+<td style="text-align:right">1,074</td>
+<td style="text-align:right">1,010</td>
+<td style="text-align:right">971</td>
+<td style="text-align:right">1,135</td>
+<td style="text-align:right">1,069</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">1,107</td>
+<td style="text-align:right">988</td>
+<td style="text-align:right">871</td>
+<td style="text-align:right">824</td>
+<td style="text-align:right">947</td>
+<td style="text-align:right">910</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">973</td>
+<td style="text-align:right">802</td>
+<td style="text-align:right">745</td>
+<td style="text-align:right">699</td>
+<td style="text-align:right">760</td>
+<td style="text-align:right">747</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">1,459</td>
+<td style="text-align:right">1,187</td>
+<td style="text-align:right">1,012</td>
+<td style="text-align:right">913</td>
+<td style="text-align:right">923</td>
+<td style="text-align:right">1,105</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：通过率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">42.76%</td>
+<td style="text-align:right">41.16%</td>
+<td style="text-align:right">40.71%</td>
+<td style="text-align:right">37.81%</td>
+<td style="text-align:right">26.94%</td>
+<td style="text-align:right">41.04%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">34.61%</td>
+<td style="text-align:right">36.12%</td>
+<td style="text-align:right">39.08%</td>
+<td style="text-align:right">31.53%</td>
+<td style="text-align:right">22.83%</td>
+<td style="text-align:right">34.40%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">26.47%</td>
+<td style="text-align:right">30.69%</td>
+<td style="text-align:right">32.10%</td>
+<td style="text-align:right">27.72%</td>
+<td style="text-align:right">16.46%</td>
+<td style="text-align:right">27.08%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">17.77%</td>
+<td style="text-align:right">23.44%</td>
+<td style="text-align:right">26.83%</td>
+<td style="text-align:right">21.06%</td>
+<td style="text-align:right">13.76%</td>
+<td style="text-align:right">19.97%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">7.01%</td>
+<td style="text-align:right">10.27%</td>
+<td style="text-align:right">11.49%</td>
+<td style="text-align:right">8.75%</td>
+<td style="text-align:right">4.83%</td>
+<td style="text-align:right">6.57%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">32.91%</td>
+<td style="text-align:right">29.12%</td>
+<td style="text-align:right">26.47%</td>
+<td style="text-align:right">17.40%</td>
+<td style="text-align:right">7.49%</td>
+<td style="text-align:right">17.32%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：3M30人数逾期率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">5.74%</td>
+<td style="text-align:right">5.99%</td>
+<td style="text-align:right">10.57%</td>
+<td style="text-align:right">10.55%</td>
+<td style="text-align:right">10.42%</td>
+<td style="text-align:right">7.05%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">5.46%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">9.69%</td>
+<td style="text-align:right">13.80%</td>
+<td style="text-align:right">14.34%</td>
+<td style="text-align:right">9.46%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">6.35%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">10.78%</td>
+<td style="text-align:right">11.76%</td>
+<td style="text-align:right">14.61%</td>
+<td style="text-align:right">10.61%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">8.04%</td>
+<td style="text-align:right">8.15%</td>
+<td style="text-align:right">14.88%</td>
+<td style="text-align:right">16.80%</td>
+<td style="text-align:right">20.27%</td>
+<td style="text-align:right">15.91%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">11.54%</td>
+<td style="text-align:right">10.83%</td>
+<td style="text-align:right">13.31%</td>
+<td style="text-align:right">19.28%</td>
+<td style="text-align:right">27.05%</td>
+<td style="text-align:right">22.90%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">5.92%</td>
+<td style="text-align:right">7.79%</td>
+<td style="text-align:right">11.70%</td>
+<td style="text-align:right">15.16%</td>
+<td style="text-align:right">22.02%</td>
+<td style="text-align:right">13.19%</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c2-表格证据-结论二低风险好资质客群适合经营提升">结论二：低风险 + 好资质客群适合经营提升 · 原始数据表</h2>
+<p><strong>原始交叉数据表：样本数</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">6,544</td>
+<td style="text-align:right">3,615</td>
+<td style="text-align:right">1,948</td>
+<td style="text-align:right">1,095</td>
+<td style="text-align:right">527</td>
+<td style="text-align:right">13,838</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">4,403</td>
+<td style="text-align:right">4,372</td>
+<td style="text-align:right">3,598</td>
+<td style="text-align:right">2,594</td>
+<td style="text-align:right">1,621</td>
+<td style="text-align:right">16,729</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">2,875</td>
+<td style="text-align:right">4,630</td>
+<td style="text-align:right">4,723</td>
+<td style="text-align:right">4,604</td>
+<td style="text-align:right">3,931</td>
+<td style="text-align:right">20,966</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">1,851</td>
+<td style="text-align:right">3,823</td>
+<td style="text-align:right">5,259</td>
+<td style="text-align:right">7,037</td>
+<td style="text-align:right">8,500</td>
+<td style="text-align:right">26,778</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">985</td>
+<td style="text-align:right">3,193</td>
+<td style="text-align:right">6,782</td>
+<td style="text-align:right">15,285</td>
+<td style="text-align:right">46,235</td>
+<td style="text-align:right">73,270</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">16,683</td>
+<td style="text-align:right">19,660</td>
+<td style="text-align:right">22,342</td>
+<td style="text-align:right">30,660</td>
+<td style="text-align:right">60,891</td>
+<td style="text-align:right">157,741</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：平均收入</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">8,351</td>
+<td style="text-align:right">9,060</td>
+<td style="text-align:right">10,051</td>
+<td style="text-align:right">13,479</td>
+<td style="text-align:right">19,425</td>
+<td style="text-align:right">9,611</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">6,159</td>
+<td style="text-align:right">6,669</td>
+<td style="text-align:right">7,216</td>
+<td style="text-align:right">8,370</td>
+<td style="text-align:right">10,389</td>
+<td style="text-align:right">7,284</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">5,059</td>
+<td style="text-align:right">5,581</td>
+<td style="text-align:right">6,002</td>
+<td style="text-align:right">6,610</td>
+<td style="text-align:right">8,396</td>
+<td style="text-align:right">6,366</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">4,208</td>
+<td style="text-align:right">4,494</td>
+<td style="text-align:right">5,001</td>
+<td style="text-align:right">5,514</td>
+<td style="text-align:right">7,103</td>
+<td style="text-align:right">5,682</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">3,265</td>
+<td style="text-align:right">3,373</td>
+<td style="text-align:right">3,451</td>
+<td style="text-align:right">3,615</td>
+<td style="text-align:right">4,153</td>
+<td style="text-align:right">3,924</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">6,443</td>
+<td style="text-align:right">5,894</td>
+<td style="text-align:right">5,541</td>
+<td style="text-align:right">5,261</td>
+<td style="text-align:right">5,138</td>
+<td style="text-align:right">5,272</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：3M30人数逾期率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">5.74%</td>
+<td style="text-align:right">5.99%</td>
+<td style="text-align:right">10.57%</td>
+<td style="text-align:right">10.55%</td>
+<td style="text-align:right">10.42%</td>
+<td style="text-align:right">7.05%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">5.46%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">9.69%</td>
+<td style="text-align:right">13.80%</td>
+<td style="text-align:right">14.34%</td>
+<td style="text-align:right">9.46%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">6.35%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">10.78%</td>
+<td style="text-align:right">11.76%</td>
+<td style="text-align:right">14.61%</td>
+<td style="text-align:right">10.61%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">8.04%</td>
+<td style="text-align:right">8.15%</td>
+<td style="text-align:right">14.88%</td>
+<td style="text-align:right">16.80%</td>
+<td style="text-align:right">20.27%</td>
+<td style="text-align:right">15.91%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">11.54%</td>
+<td style="text-align:right">10.83%</td>
+<td style="text-align:right">13.31%</td>
+<td style="text-align:right">19.28%</td>
+<td style="text-align:right">27.05%</td>
+<td style="text-align:right">22.90%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">5.92%</td>
+<td style="text-align:right">7.79%</td>
+<td style="text-align:right">11.70%</td>
+<td style="text-align:right">15.16%</td>
+<td style="text-align:right">22.02%</td>
+<td style="text-align:right">13.19%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：通过率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">42.76%</td>
+<td style="text-align:right">41.16%</td>
+<td style="text-align:right">40.71%</td>
+<td style="text-align:right">37.81%</td>
+<td style="text-align:right">26.94%</td>
+<td style="text-align:right">41.04%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">34.61%</td>
+<td style="text-align:right">36.12%</td>
+<td style="text-align:right">39.08%</td>
+<td style="text-align:right">31.53%</td>
+<td style="text-align:right">22.83%</td>
+<td style="text-align:right">34.40%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">26.47%</td>
+<td style="text-align:right">30.69%</td>
+<td style="text-align:right">32.10%</td>
+<td style="text-align:right">27.72%</td>
+<td style="text-align:right">16.46%</td>
+<td style="text-align:right">27.08%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">17.77%</td>
+<td style="text-align:right">23.44%</td>
+<td style="text-align:right">26.83%</td>
+<td style="text-align:right">21.06%</td>
+<td style="text-align:right">13.76%</td>
+<td style="text-align:right">19.97%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">7.01%</td>
+<td style="text-align:right">10.27%</td>
+<td style="text-align:right">11.49%</td>
+<td style="text-align:right">8.75%</td>
+<td style="text-align:right">4.83%</td>
+<td style="text-align:right">6.57%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">32.91%</td>
+<td style="text-align:right">29.12%</td>
+<td style="text-align:right">26.47%</td>
+<td style="text-align:right">17.40%</td>
+<td style="text-align:right">7.49%</td>
+<td style="text-align:right">17.32%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>经营提升客群总结表：</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>策略方向</th>
+<th style="text-align:right">适用客群</th>
+<th style="text-align:right">典型分箱</th>
+<th style="text-align:right">关键数据表现</th>
+<th style="text-align:right">建议动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>经营提升</td>
+<td style="text-align:right">低风险 + 好资质</td>
+<td style="text-align:right">风险1-2 × 资质1-2</td>
+<td style="text-align:right">样本 18,934，占比 12.00%；3M30 6.30%；3M30金额 3.00%；收入约 6,159-9,060；通过率 34.61%-42.76%</td>
+<td style="text-align:right">优先提额、降价、自动审批、提高通过率</td>
+</tr>
+<tr>
+<td>谨慎经营</td>
+<td style="text-align:right">高风险 + 好资质</td>
+<td style="text-align:right">风险4-5 × 资质1-2</td>
+<td style="text-align:right">样本 5,837，占比 3.70%；3M30 12.90%；3M30金额 8.54%；收入约 8,370-19,425；通过率 22.83%-37.81%</td>
+<td style="text-align:right">不建议直接强提额，可做人工复核、差异化额度或价格测试</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c2-表格证据-结论三高风险差资质客群需要风险控制">结论三：高风险 + 差资质客群需要风险控制 · 原始数据表</h2>
+<p><strong>原始交叉数据表：样本数</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">6,544</td>
+<td style="text-align:right">3,615</td>
+<td style="text-align:right">1,948</td>
+<td style="text-align:right">1,095</td>
+<td style="text-align:right">527</td>
+<td style="text-align:right">13,838</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">4,403</td>
+<td style="text-align:right">4,372</td>
+<td style="text-align:right">3,598</td>
+<td style="text-align:right">2,594</td>
+<td style="text-align:right">1,621</td>
+<td style="text-align:right">16,729</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">2,875</td>
+<td style="text-align:right">4,630</td>
+<td style="text-align:right">4,723</td>
+<td style="text-align:right">4,604</td>
+<td style="text-align:right">3,931</td>
+<td style="text-align:right">20,966</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">1,851</td>
+<td style="text-align:right">3,823</td>
+<td style="text-align:right">5,259</td>
+<td style="text-align:right">7,037</td>
+<td style="text-align:right">8,500</td>
+<td style="text-align:right">26,778</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">985</td>
+<td style="text-align:right">3,193</td>
+<td style="text-align:right">6,782</td>
+<td style="text-align:right">15,285</td>
+<td style="text-align:right">46,235</td>
+<td style="text-align:right">73,270</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">16,683</td>
+<td style="text-align:right">19,660</td>
+<td style="text-align:right">22,342</td>
+<td style="text-align:right">30,660</td>
+<td style="text-align:right">60,891</td>
+<td style="text-align:right">157,741</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：3M30人数逾期率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">5.74%</td>
+<td style="text-align:right">5.99%</td>
+<td style="text-align:right">10.57%</td>
+<td style="text-align:right">10.55%</td>
+<td style="text-align:right">10.42%</td>
+<td style="text-align:right">7.05%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">5.46%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">9.69%</td>
+<td style="text-align:right">13.80%</td>
+<td style="text-align:right">14.34%</td>
+<td style="text-align:right">9.46%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">6.35%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">10.78%</td>
+<td style="text-align:right">11.76%</td>
+<td style="text-align:right">14.61%</td>
+<td style="text-align:right">10.61%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">8.04%</td>
+<td style="text-align:right">8.15%</td>
+<td style="text-align:right">14.88%</td>
+<td style="text-align:right">16.80%</td>
+<td style="text-align:right">20.27%</td>
+<td style="text-align:right">15.91%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">11.54%</td>
+<td style="text-align:right">10.83%</td>
+<td style="text-align:right">13.31%</td>
+<td style="text-align:right">19.28%</td>
+<td style="text-align:right">27.05%</td>
+<td style="text-align:right">22.90%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">5.92%</td>
+<td style="text-align:right">7.79%</td>
+<td style="text-align:right">11.70%</td>
+<td style="text-align:right">15.16%</td>
+<td style="text-align:right">22.02%</td>
+<td style="text-align:right">13.19%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：3M30金额逾期率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">2.62%</td>
+<td style="text-align:right">2.95%</td>
+<td style="text-align:right">5.31%</td>
+<td style="text-align:right">5.91%</td>
+<td style="text-align:right">7.96%</td>
+<td style="text-align:right">3.35%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">2.48%</td>
+<td style="text-align:right">4.45%</td>
+<td style="text-align:right">5.66%</td>
+<td style="text-align:right">8.65%</td>
+<td style="text-align:right">11.52%</td>
+<td style="text-align:right">5.11%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">2.85%</td>
+<td style="text-align:right">3.72%</td>
+<td style="text-align:right">6.47%</td>
+<td style="text-align:right">8.28%</td>
+<td style="text-align:right">10.38%</td>
+<td style="text-align:right">5.95%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">2.07%</td>
+<td style="text-align:right">4.45%</td>
+<td style="text-align:right">7.26%</td>
+<td style="text-align:right">10.59%</td>
+<td style="text-align:right">15.71%</td>
+<td style="text-align:right">9.10%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">5.21%</td>
+<td style="text-align:right">3.89%</td>
+<td style="text-align:right">5.83%</td>
+<td style="text-align:right">11.08%</td>
+<td style="text-align:right">20.82%</td>
+<td style="text-align:right">14.13%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">2.61%</td>
+<td style="text-align:right">3.79%</td>
+<td style="text-align:right">6.15%</td>
+<td style="text-align:right">9.21%</td>
+<td style="text-align:right">16.04%</td>
+<td style="text-align:right">6.54%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：通过率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">42.76%</td>
+<td style="text-align:right">41.16%</td>
+<td style="text-align:right">40.71%</td>
+<td style="text-align:right">37.81%</td>
+<td style="text-align:right">26.94%</td>
+<td style="text-align:right">41.04%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">34.61%</td>
+<td style="text-align:right">36.12%</td>
+<td style="text-align:right">39.08%</td>
+<td style="text-align:right">31.53%</td>
+<td style="text-align:right">22.83%</td>
+<td style="text-align:right">34.40%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">26.47%</td>
+<td style="text-align:right">30.69%</td>
+<td style="text-align:right">32.10%</td>
+<td style="text-align:right">27.72%</td>
+<td style="text-align:right">16.46%</td>
+<td style="text-align:right">27.08%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">17.77%</td>
+<td style="text-align:right">23.44%</td>
+<td style="text-align:right">26.83%</td>
+<td style="text-align:right">21.06%</td>
+<td style="text-align:right">13.76%</td>
+<td style="text-align:right">19.97%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">7.01%</td>
+<td style="text-align:right">10.27%</td>
+<td style="text-align:right">11.49%</td>
+<td style="text-align:right">8.75%</td>
+<td style="text-align:right">4.83%</td>
+<td style="text-align:right">6.57%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">32.91%</td>
+<td style="text-align:right">29.12%</td>
+<td style="text-align:right">26.47%</td>
+<td style="text-align:right">17.40%</td>
+<td style="text-align:right">7.49%</td>
+<td style="text-align:right">17.32%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>风险控制客群总结表：</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>控制方向</th>
+<th style="text-align:right">适用客群</th>
+<th style="text-align:right">典型分箱</th>
+<th style="text-align:right">关键数据表现</th>
+<th style="text-align:right">建议动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>风险控制</td>
+<td style="text-align:right">高风险 + 差资质</td>
+<td style="text-align:right">风险4-5 × 资质4-5</td>
+<td style="text-align:right">样本 77,057，占比 48.85%；3M30 22.25%；3M30金额 15.38%；收入约 3,615-7,103；通过率 4.83%-21.06%</td>
+<td style="text-align:right">降低额度、提高价格、转人工审核、压降通过率</td>
+</tr>
+<tr>
+<td>收益复核</td>
+<td style="text-align:right">低风险 + 差资质</td>
+<td style="text-align:right">风险1-2 × 资质4-5</td>
+<td style="text-align:right">样本 9,852，占比 6.25%；3M30 8.79%；3M30金额 3.85%；收入约 3,265-4,494；通过率 7.01%-23.44%</td>
+<td style="text-align:right">风险不高但经营价值偏弱，建议控制额度和补充收益验证</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c2-表格证据-结论四风险模型资质模型可以形成联合分层策略">结论四：风险模型 + 资质模型可以形成联合分层策略 · 原始数据表</h2>
+<p><strong>原始交叉数据表：样本数</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">6,544</td>
+<td style="text-align:right">3,615</td>
+<td style="text-align:right">1,948</td>
+<td style="text-align:right">1,095</td>
+<td style="text-align:right">527</td>
+<td style="text-align:right">13,838</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">4,403</td>
+<td style="text-align:right">4,372</td>
+<td style="text-align:right">3,598</td>
+<td style="text-align:right">2,594</td>
+<td style="text-align:right">1,621</td>
+<td style="text-align:right">16,729</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">2,875</td>
+<td style="text-align:right">4,630</td>
+<td style="text-align:right">4,723</td>
+<td style="text-align:right">4,604</td>
+<td style="text-align:right">3,931</td>
+<td style="text-align:right">20,966</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">1,851</td>
+<td style="text-align:right">3,823</td>
+<td style="text-align:right">5,259</td>
+<td style="text-align:right">7,037</td>
+<td style="text-align:right">8,500</td>
+<td style="text-align:right">26,778</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">985</td>
+<td style="text-align:right">3,193</td>
+<td style="text-align:right">6,782</td>
+<td style="text-align:right">15,285</td>
+<td style="text-align:right">46,235</td>
+<td style="text-align:right">73,270</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">16,683</td>
+<td style="text-align:right">19,660</td>
+<td style="text-align:right">22,342</td>
+<td style="text-align:right">30,660</td>
+<td style="text-align:right">60,891</td>
+<td style="text-align:right">157,741</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：平均收入</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">8,351</td>
+<td style="text-align:right">9,060</td>
+<td style="text-align:right">10,051</td>
+<td style="text-align:right">13,479</td>
+<td style="text-align:right">19,425</td>
+<td style="text-align:right">9,611</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">6,159</td>
+<td style="text-align:right">6,669</td>
+<td style="text-align:right">7,216</td>
+<td style="text-align:right">8,370</td>
+<td style="text-align:right">10,389</td>
+<td style="text-align:right">7,284</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">5,059</td>
+<td style="text-align:right">5,581</td>
+<td style="text-align:right">6,002</td>
+<td style="text-align:right">6,610</td>
+<td style="text-align:right">8,396</td>
+<td style="text-align:right">6,366</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">4,208</td>
+<td style="text-align:right">4,494</td>
+<td style="text-align:right">5,001</td>
+<td style="text-align:right">5,514</td>
+<td style="text-align:right">7,103</td>
+<td style="text-align:right">5,682</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">3,265</td>
+<td style="text-align:right">3,373</td>
+<td style="text-align:right">3,451</td>
+<td style="text-align:right">3,615</td>
+<td style="text-align:right">4,153</td>
+<td style="text-align:right">3,924</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">6,443</td>
+<td style="text-align:right">5,894</td>
+<td style="text-align:right">5,541</td>
+<td style="text-align:right">5,261</td>
+<td style="text-align:right">5,138</td>
+<td style="text-align:right">5,272</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：3M30人数逾期率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">5.74%</td>
+<td style="text-align:right">5.99%</td>
+<td style="text-align:right">10.57%</td>
+<td style="text-align:right">10.55%</td>
+<td style="text-align:right">10.42%</td>
+<td style="text-align:right">7.05%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">5.46%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">9.69%</td>
+<td style="text-align:right">13.80%</td>
+<td style="text-align:right">14.34%</td>
+<td style="text-align:right">9.46%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">6.35%</td>
+<td style="text-align:right">8.38%</td>
+<td style="text-align:right">10.78%</td>
+<td style="text-align:right">11.76%</td>
+<td style="text-align:right">14.61%</td>
+<td style="text-align:right">10.61%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">8.04%</td>
+<td style="text-align:right">8.15%</td>
+<td style="text-align:right">14.88%</td>
+<td style="text-align:right">16.80%</td>
+<td style="text-align:right">20.27%</td>
+<td style="text-align:right">15.91%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">11.54%</td>
+<td style="text-align:right">10.83%</td>
+<td style="text-align:right">13.31%</td>
+<td style="text-align:right">19.28%</td>
+<td style="text-align:right">27.05%</td>
+<td style="text-align:right">22.90%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">5.92%</td>
+<td style="text-align:right">7.79%</td>
+<td style="text-align:right">11.70%</td>
+<td style="text-align:right">15.16%</td>
+<td style="text-align:right">22.02%</td>
+<td style="text-align:right">13.19%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原始交叉数据表：成交率</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>资质分箱 \ 风险分箱</th>
+<th style="text-align:right">风险1</th>
+<th style="text-align:right">风险2</th>
+<th style="text-align:right">风险3</th>
+<th style="text-align:right">风险4</th>
+<th style="text-align:right">风险5</th>
+<th style="text-align:right">合计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资质1</td>
+<td style="text-align:right">83.13%</td>
+<td style="text-align:right">82.33%</td>
+<td style="text-align:right">83.48%</td>
+<td style="text-align:right">82.61%</td>
+<td style="text-align:right">84.51%</td>
+<td style="text-align:right">83.04%</td>
+</tr>
+<tr>
+<td>资质2</td>
+<td style="text-align:right">84.97%</td>
+<td style="text-align:right">85.88%</td>
+<td style="text-align:right">82.43%</td>
+<td style="text-align:right">84.84%</td>
+<td style="text-align:right">86.76%</td>
+<td style="text-align:right">84.69%</td>
+</tr>
+<tr>
+<td>资质3</td>
+<td style="text-align:right">85.02%</td>
+<td style="text-align:right">85.86%</td>
+<td style="text-align:right">84.37%</td>
+<td style="text-align:right">83.39%</td>
+<td style="text-align:right">86.40%</td>
+<td style="text-align:right">84.91%</td>
+</tr>
+<tr>
+<td>资质4</td>
+<td style="text-align:right">84.80%</td>
+<td style="text-align:right">85.04%</td>
+<td style="text-align:right">85.61%</td>
+<td style="text-align:right">86.30%</td>
+<td style="text-align:right">88.29%</td>
+<td style="text-align:right">86.24%</td>
+</tr>
+<tr>
+<td>资质5</td>
+<td style="text-align:right">89.86%</td>
+<td style="text-align:right">83.84%</td>
+<td style="text-align:right">86.01%</td>
+<td style="text-align:right">85.49%</td>
+<td style="text-align:right">88.57%</td>
+<td style="text-align:right">87.05%</td>
+</tr>
+<tr>
+<td>合计</td>
+<td style="text-align:right">84.10%</td>
+<td style="text-align:right">84.66%</td>
+<td style="text-align:right">84.33%</td>
+<td style="text-align:right">84.86%</td>
+<td style="text-align:right">87.92%</td>
+<td style="text-align:right">85.11%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>联合策略总结表：</strong></p>
+<table class="data-table">
+<thead>
+<tr>
+<th>风险层级</th>
+<th style="text-align:right">资质层级</th>
+<th style="text-align:right">典型分箱</th>
+<th style="text-align:right">客群特征</th>
+<th style="text-align:right">策略建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>低风险</td>
+<td style="text-align:right">好资质</td>
+<td style="text-align:right">风险1-2 × 资质1-2</td>
+<td style="text-align:right">样本 18,934，占比 12.00%；3M30 6.30%；收入约 6,159-9,060</td>
+<td style="text-align:right">优先提额、降价、自动审批、提高通过率</td>
+</tr>
+<tr>
+<td>低风险</td>
+<td style="text-align:right">差资质</td>
+<td style="text-align:right">风险1-2 × 资质4-5</td>
+<td style="text-align:right">样本 9,852，占比 6.25%；3M30 8.79%；收入约 3,265-4,494</td>
+<td style="text-align:right">风险可控但经营价值偏弱，控制额度，观察收益与复贷转化</td>
+</tr>
+<tr>
+<td>高风险</td>
+<td style="text-align:right">好资质</td>
+<td style="text-align:right">风险4-5 × 资质1-2</td>
+<td style="text-align:right">样本 5,837，占比 3.70%；3M30 12.90%；收入约 8,370-19,425</td>
+<td style="text-align:right">谨慎经营，人工复核，额度/价格分层测试</td>
+</tr>
+<tr>
+<td>高风险</td>
+<td style="text-align:right">差资质</td>
+<td style="text-align:right">风险4-5 × 资质4-5</td>
+<td style="text-align:right">样本 77,057，占比 48.85%；3M30 22.25%；收入约 3,615-7,103</td>
+<td style="text-align:right">压降、拒绝、强人工审核或严格限额</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section><section class="chapter-card" id="chapter-1">
+<div class="chapter-kicker">Chapter 02</div>
+<div class="chapter-title-row">
+<h2>模型基础报告</h2>
+<span>Source · 粘贴的 markdown (1)。md(16)</span>
+</div>
+<div class="markdown-body">
+<h1 id="c1-新客资质模型-1-0-模型报告">新客资质模型 1.0 模型报告</h1>
+<h2 id="c1-1-报告概述">1. 报告概述</h2>
+<p>本报告用于总结 <strong>新客资质模型 1.0</strong> 的建模样本、目标变量、入模变量、模型方法、模型效果、分箱区分能力以及后续上线使用建议。</p>
+<p>该模型的核心目标是识别用户的资质水平，重点衡量用户在一定观察期内的利息收入贡献能力，并为后续授信、定价、审批策略和客群分层提供模型依据。</p>
+<hr/>
+<h2 id="c1-2-模型基本信息">2. 模型基本信息</h2>
+<table class="data-table">
+<thead>
+<tr>
+<th>模块</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型名称</td>
+<td>新客资质模型 1.0</td>
+</tr>
+<tr>
+<td>建模目标</td>
+<td>预测用户 3 个月维度的实付利息收入</td>
+</tr>
+<tr>
+<td>目标变量</td>
+<td><code>y_interest_income_3m</code></td>
+</tr>
+<tr>
+<td>样本粒度</td>
+<td>成功交易贷款申请</td>
+</tr>
+<tr>
+<td>时间定义</td>
+<td>申请发起时间 / 成交申请时间</td>
+</tr>
+<tr>
+<td>建模算法</td>
+<td>LightGBM</td>
+</tr>
+<tr>
+<td>模型类型</td>
+<td>二分类模型</td>
+</tr>
+<tr>
+<td>随机种子</td>
+<td>215</td>
+</tr>
+<tr>
+<td>样本区间</td>
+<td>2024-04-01 至当前可观测时间</td>
+</tr>
+<tr>
+<td>INS/OOS 区间</td>
+<td>2024-04-01 至 2025-09-01</td>
+</tr>
+<tr>
+<td>OOT 区间</td>
+<td>2025-09-01 至当前</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="c1-3-样本设计">3. 样本设计</h2>
+<h3 id="c1-3-1-样本口径">3.1 样本口径</h3>
+<p>本次模型样本基于成功交易客户构建，样本时间范围覆盖 2024 年 4 月至 OOT 最新可观测时间。</p>
+<p>样本划分方式如下：</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>样本集</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INS</td>
+<td>训练样本，用于模型训练</td>
+</tr>
+<tr>
+<td>OOS</td>
+<td>样本外验证集，用于检验模型泛化能力</td>
+</tr>
+<tr>
+<td>OOT</td>
+<td>跨时间验证集，用于检验模型在未来时间窗口上的稳定性</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h3 id="c1-3-2-样本分布">3.2 样本分布</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th>样本集</th>
+<th style="text-align:right">样本量</th>
+<th style="text-align:right">样本占比</th>
+<th style="text-align:right">目标样本数</th>
+<th style="text-align:right">目标样本占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INS</td>
+<td style="text-align:right">34,056</td>
+<td style="text-align:right">60.46%</td>
+<td style="text-align:right">9,235</td>
+<td style="text-align:right">27.12%</td>
+</tr>
+<tr>
+<td>OOS</td>
+<td style="text-align:right">8,501</td>
+<td style="text-align:right">15.09%</td>
+<td style="text-align:right">2,316</td>
+<td style="text-align:right">27.24%</td>
+</tr>
+<tr>
+<td>OOT</td>
+<td style="text-align:right">13,773</td>
+<td style="text-align:right">24.45%</td>
+<td style="text-align:right">3,724</td>
+<td style="text-align:right">27.04%</td>
+</tr>
+<tr>
+<td>Total</td>
+<td style="text-align:right">56,330</td>
+<td style="text-align:right">100.00%</td>
+<td style="text-align:right">15,275</td>
+<td style="text-align:right">27.12%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c1-3-3-样本结论">3.3 样本结论</h3>
+<p>从样本分布看，INS、OOS、OOT 三个样本集的目标样本占比基本稳定，均在 <strong>27% 左右</strong>。这说明建模样本在不同时间窗口下的目标分布较为一致，未出现明显的样本结构漂移。</p>
+<p>这对模型训练是有利的，因为模型在训练集、验证集和跨时间样本上的目标分布较接近，后续效果对比更具可解释性。</p>
+<hr/>
+<h2 id="c1-4-变量体系">4. 变量体系</h2>
+<h3 id="c1-4-1-入模变量概览">4.1 入模变量概览</h3>
+<p>本次模型主要使用银行流水类变量，变量覆盖收入能力、资金流动、负债还款、余额波动、转账行为和支出结构等维度。</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>变量类型</th>
+<th>代表变量</th>
+<th>业务含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收入能力</td>
+<td>工资收入、收入均值、其他收入</td>
+<td>衡量用户稳定收入能力</td>
+</tr>
+<tr>
+<td>现金流活跃度</td>
+<td>借方金额均值、借方发生频率</td>
+<td>衡量用户资金流出和账户活跃水平</td>
+</tr>
+<tr>
+<td>余额稳定性</td>
+<td>余额变异系数、余额偏度</td>
+<td>衡量账户余额波动和资金稳定性</td>
+</tr>
+<tr>
+<td>负债行为</td>
+<td>BNPL 还款、贷款还款笔数、贷款放款金额</td>
+<td>衡量用户外部债务和还款压力</td>
+</tr>
+<tr>
+<td>转账行为</td>
+<td>转账簇金额占比、外部转账支出</td>
+<td>衡量资金流向和潜在资金周转需求</td>
+</tr>
+<tr>
+<td>支出结构</td>
+<td>保险支出、债务支出客单价</td>
+<td>衡量用户固定支出和债务负担</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h3 id="c1-4-2-变量重要性-top-变量">4.2 变量重要性 Top 变量</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:right">排名</th>
+<th>变量名</th>
+<th>中文含义</th>
+<th style="text-align:right">重要性占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">1</td>
+<td><code>bank_txn_income_wages_sum_182d</code></td>
+<td>近 182 天工资收入汇总金额</td>
+<td style="text-align:right">20.25%</td>
+</tr>
+<tr>
+<td style="text-align:right">2</td>
+<td><code>bank_txn_income_global_mean_56d</code></td>
+<td>近 56 天收入均值</td>
+<td style="text-align:right">15.60%</td>
+</tr>
+<tr>
+<td style="text-align:right">3</td>
+<td><code>bank_txn_balance_debit_mean_168d</code></td>
+<td>近 168 天借方金额均值</td>
+<td style="text-align:right">15.23%</td>
+</tr>
+<tr>
+<td style="text-align:right">4</td>
+<td><code>bank_txn_lender_repay_bnpl_amount_sum</code></td>
+<td>先买后付还款金额总和</td>
+<td style="text-align:right">6.98%</td>
+</tr>
+<tr>
+<td style="text-align:right">5</td>
+<td><code>bank_txn_category_cluster_transfers_share_28d</code></td>
+<td>近 28 天转账簇金额占比</td>
+<td style="text-align:right">6.32%</td>
+</tr>
+<tr>
+<td style="text-align:right">6</td>
+<td><code>bank_txn_lender_repay_loan_count_max</code></td>
+<td>个人贷款还款单机构最大累计笔数</td>
+<td style="text-align:right">4.98%</td>
+</tr>
+<tr>
+<td style="text-align:right">7</td>
+<td><code>bank_txn_balance_cv_56d</code></td>
+<td>近 56 天余额变异系数</td>
+<td style="text-align:right">4.91%</td>
+</tr>
+<tr>
+<td style="text-align:right">8</td>
+<td><code>bank_txn_lender_disburse_loan_amount_avg_l168d</code></td>
+<td>近 168 天个人贷款放款金额均值</td>
+<td style="text-align:right">4.75%</td>
+</tr>
+<tr>
+<td style="text-align:right">9</td>
+<td><code>bank_txn_category_insurance_debit_amt_14d</code></td>
+<td>近 14 天保险出账金额</td>
+<td style="text-align:right">4.56%</td>
+</tr>
+<tr>
+<td style="text-align:right">10</td>
+<td><code>bank_txn_category_cluster_debt_avg_ticket_168d</code></td>
+<td>债务支出簇近 168 天平均客单价</td>
+<td style="text-align:right">3.60%</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h3 id="c1-4-3-变量结论">4.3 变量结论</h3>
+<p>从变量重要性看，模型主要依赖三类核心信息：</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>方向</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收入能力</td>
+<td>工资收入、收入均值是模型最核心的判断依据，说明模型能够较好识别用户的收入水平和收入稳定性。</td>
+</tr>
+<tr>
+<td>资金流动</td>
+<td>借方金额均值、借方频率、余额波动等变量进入模型，说明用户日常现金流活跃度对资质判断有明显帮助。</td>
+</tr>
+<tr>
+<td>负债与支出</td>
+<td>BNPL 还款、贷款还款、债务支出、转账占比等变量反映用户资金压力和外部负债情况，对区分资质也有贡献。</td>
+</tr>
+</tbody>
+</table>
+<p>整体来看，模型变量结构较合理，既包含正向收入能力变量，也包含负向负债压力和现金流波动变量，符合资质模型的业务逻辑。</p>
+<hr/>
+<h2 id="c1-5-变量-iv-表现">5. 变量 IV 表现</h2>
+<h3 id="c1-5-1-主要变量-iv">5.1 主要变量 IV</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th>变量名</th>
+<th style="text-align:right">IV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bank_txn_income_wages_sum_182d</code></td>
+<td style="text-align:right">0.21001</td>
+</tr>
+<tr>
+<td><code>bank_txn_balance_debit_mean_168d</code></td>
+<td style="text-align:right">0.19185</td>
+</tr>
+<tr>
+<td><code>bank_txn_income_global_mean_56d</code></td>
+<td style="text-align:right">0.15716</td>
+</tr>
+<tr>
+<td><code>bank_txn_balance_credit_std_14d</code></td>
+<td style="text-align:right">0.07990</td>
+</tr>
+<tr>
+<td><code>bank_txn_category_insurance_debit_amt_14d</code></td>
+<td style="text-align:right">0.07834</td>
+</tr>
+<tr>
+<td><code>bank_txn_category_cluster_debt_avg_ticket_168d</code></td>
+<td style="text-align:right">0.07602</td>
+</tr>
+<tr>
+<td><code>bank_txn_lender_repay_bnpl_amount_sum</code></td>
+<td style="text-align:right">0.06429</td>
+</tr>
+<tr>
+<td><code>bank_txn_category_cluster_transfers_share_28d</code></td>
+<td style="text-align:right">0.06362</td>
+</tr>
+<tr>
+<td><code>bank_txn_balance_cv_56d</code></td>
+<td style="text-align:right">0.05937</td>
+</tr>
+<tr>
+<td><code>bank_txn_lender_repay_loan_count_max</code></td>
+<td style="text-align:right">0.05773</td>
+</tr>
+<tr>
+<td><code>bank_txn_balance_debit_freq_182d</code></td>
+<td style="text-align:right">0.04947</td>
+</tr>
+<tr>
+<td><code>bank_txn_income_otherincome_3rdparty_max_consecutive_days</code></td>
+<td style="text-align:right">0.04509</td>
+</tr>
+<tr>
+<td><code>bank_txn_expense_externaltransfers_daily_min_182d</code></td>
+<td style="text-align:right">0.04163</td>
+</tr>
+<tr>
+<td><code>bank_txn_income_otherincome_category_externaltransfers_mean_84d</code></td>
+<td style="text-align:right">0.03824</td>
+</tr>
+<tr>
+<td><code>bank_txn_lender_disburse_loan_amount_avg_l168d</code></td>
+<td style="text-align:right">0.03293</td>
+</tr>
+<tr>
+<td><code>bank_txn_surplus_liabilitydrawdown_1m_vs_6m</code></td>
+<td style="text-align:right">0.02702</td>
+</tr>
+<tr>
+<td><code>bank_txn_balance_skewness_56d</code></td>
+<td style="text-align:right">0.02604</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c1-5-2-iv-结论">5.2 IV 结论</h3>
+<p>从 IV 表现看，头部变量具备较好的单变量区分能力。</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>变量类别</th>
+<th>表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收入类变量</td>
+<td><code>wages_sum_182d</code>、<code>income_global_mean_56d</code> IV 较高，是模型最重要的信息来源。</td>
+</tr>
+<tr>
+<td>现金流类变量</td>
+<td><code>balance_debit_mean_168d</code> IV 达到 0.19185，说明资金流出水平对资质区分较强。</td>
+</tr>
+<tr>
+<td>负债支出类变量</td>
+<td>BNPL、债务支出、贷款还款等变量 IV 在 0.05 至 0.08 左右，具备稳定辅助区分能力。</td>
+</tr>
+</tbody>
+</table>
+<p>整体来看，模型不是依赖单一变量，而是由收入、现金流、负债和支出等多类变量共同驱动，变量结构相对稳健。</p>
+<hr/>
+<h2 id="c1-6-模型方法">6. 模型方法</h2>
+<h3 id="c1-6-1-算法选择">6.1 算法选择</h3>
+<p>本次模型采用 LightGBM 二分类模型，适用于结构化表格数据，能够处理非线性关系和变量之间的交互关系。</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>参数</th>
+<th style="text-align:right">取值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>algorithm</td>
+<td style="text-align:right">LightGBM</td>
+</tr>
+<tr>
+<td>boosting_type</td>
+<td style="text-align:right">gbdt</td>
+</tr>
+<tr>
+<td>objective</td>
+<td style="text-align:right">binary</td>
+</tr>
+<tr>
+<td>metric</td>
+<td style="text-align:right">auc</td>
+</tr>
+<tr>
+<td>max_depth</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>num_leaves</td>
+<td style="text-align:right">12</td>
+</tr>
+<tr>
+<td>min_data_in_leaf</td>
+<td style="text-align:right">300</td>
+</tr>
+<tr>
+<td>learning_rate</td>
+<td style="text-align:right">0.1</td>
+</tr>
+<tr>
+<td>feature_fraction</td>
+<td style="text-align:right">0.8</td>
+</tr>
+<tr>
+<td>bagging_fraction</td>
+<td style="text-align:right">0.8</td>
+</tr>
+<tr>
+<td>bagging_freq</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>lambda_l1</td>
+<td style="text-align:right">10</td>
+</tr>
+<tr>
+<td>lambda_l2</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>random_state</td>
+<td style="text-align:right">215</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c1-6-2-参数解读">6.2 参数解读</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th>参数方向</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>树深度控制</td>
+<td><code>max_depth=3</code>，限制单棵树复杂度，降低过拟合风险。</td>
+</tr>
+<tr>
+<td>叶子节点控制</td>
+<td><code>num_leaves=12</code>，模型复杂度适中。</td>
+</tr>
+<tr>
+<td>样本约束</td>
+<td><code>min_data_in_leaf=300</code>，防止模型过度学习小样本局部特征。</td>
+</tr>
+<tr>
+<td>特征采样</td>
+<td><code>feature_fraction=0.8</code>，提升模型泛化能力。</td>
+</tr>
+<tr>
+<td>样本采样</td>
+<td><code>bagging_fraction=0.8</code>，降低模型对单一样本集的依赖。</td>
+</tr>
+<tr>
+<td>正则化</td>
+<td><code>lambda_l1=10</code>、<code>lambda_l2=1</code>，增强模型稳定性。</td>
+</tr>
+</tbody>
+</table>
+<p>整体来看，模型参数偏稳健，没有明显过度复杂化，适合资质模型上线前的稳定性要求。</p>
+<hr/>
+<h2 id="c1-7-模型效果评估">7. 模型效果评估</h2>
+<h3 id="c1-7-1-整体效果">7.1 整体效果</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th>样本集</th>
+<th style="text-align:right">样本量</th>
+<th style="text-align:right">实际目标率</th>
+<th style="text-align:right">平均预测分</th>
+<th style="text-align:right">KS</th>
+<th style="text-align:right">AUC</th>
+<th style="text-align:right">Bottom 10% 目标率</th>
+<th style="text-align:right">Top 10% 目标率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INS</td>
+<td style="text-align:right">30,303</td>
+<td style="text-align:right">22.73%</td>
+<td style="text-align:right">22.75%</td>
+<td style="text-align:right">0.2939</td>
+<td style="text-align:right">0.7015</td>
+<td style="text-align:right">6.70%</td>
+<td style="text-align:right">52.39%</td>
+</tr>
+<tr>
+<td>OOS</td>
+<td style="text-align:right">7,481</td>
+<td style="text-align:right">23.03%</td>
+<td style="text-align:right">22.89%</td>
+<td style="text-align:right">0.3077</td>
+<td style="text-align:right">0.7084</td>
+<td style="text-align:right">7.89%</td>
+<td style="text-align:right">56.88%</td>
+</tr>
+<tr>
+<td>OOT</td>
+<td style="text-align:right">13,154</td>
+<td style="text-align:right">25.75%</td>
+<td style="text-align:right">23.60%</td>
+<td style="text-align:right">0.3467</td>
+<td style="text-align:right">0.7294</td>
+<td style="text-align:right">7.30%</td>
+<td style="text-align:right">63.00%</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h3 id="c1-7-2-区分能力结论">7.2 区分能力结论</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th>指标</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AUC</td>
+<td>INS、OOS、OOT 分别为 0.7015、0.7084、0.7294，模型具备较好的排序能力。</td>
+</tr>
+<tr>
+<td>KS</td>
+<td>INS、OOS、OOT 分别为 0.2939、0.3077、0.3467，跨样本表现稳定，且 OOT 效果未下降。</td>
+</tr>
+<tr>
+<td>Top / Bottom 区分</td>
+<td>OOT 中 Top 10% 目标率为 63.00%，Bottom 10% 目标率为 7.30%，头尾区分明显。</td>
+</tr>
+<tr>
+<td>泛化能力</td>
+<td>OOS 和 OOT 的 AUC、KS 均未低于 INS，说明模型没有明显过拟合。</td>
+</tr>
+</tbody>
+</table>
+<p>整体来看，模型在训练样本、样本外验证和跨时间验证上均保持较好的区分能力，具备上线试运行基础。</p>
+<hr/>
+<h3 id="c1-7-3-校准情况">7.3 校准情况</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th>样本集</th>
+<th style="text-align:right">实际目标率</th>
+<th style="text-align:right">平均预测分</th>
+<th style="text-align:right">差异</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INS</td>
+<td style="text-align:right">22.73%</td>
+<td style="text-align:right">22.75%</td>
+<td style="text-align:right">+0.02pct</td>
+</tr>
+<tr>
+<td>OOS</td>
+<td style="text-align:right">23.03%</td>
+<td style="text-align:right">22.89%</td>
+<td style="text-align:right">-0.14pct</td>
+</tr>
+<tr>
+<td>OOT</td>
+<td style="text-align:right">25.75%</td>
+<td style="text-align:right">23.60%</td>
+<td style="text-align:right">-2.15pct</td>
+</tr>
+</tbody>
+</table>
+<p>从校准角度看：</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>样本集</th>
+<th>判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INS</td>
+<td>实际目标率和平均预测分基本一致，校准较好。</td>
+</tr>
+<tr>
+<td>OOS</td>
+<td>预测分略低于实际目标率，但差异很小。</td>
+</tr>
+<tr>
+<td>OOT</td>
+<td>实际目标率高于平均预测分约 2.15 个百分点，存在一定低估。</td>
+</tr>
+</tbody>
+</table>
+<p>因此，模型排序能力较好，但 OOT 存在轻微低估现象。若后续用于精细化定价、额度测算或收益预测，建议补充校准分析；若主要用于排序分层和策略分组，目前表现可以接受。</p>
+<hr/>
+<h2 id="c1-8-模型分箱表现">8. 模型分箱表现</h2>
+<h3 id="c1-8-1-oot-十等分表现">8.1 OOT 十等分表现</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:right">分箱</th>
+<th>分数区间</th>
+<th style="text-align:right">样本量</th>
+<th style="text-align:right">样本占比</th>
+<th style="text-align:right">平均目标率</th>
+<th style="text-align:right">平均预测分</th>
+<th style="text-align:right">Capture Rate</th>
+<th style="text-align:right">Lift</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">10</td>
+<td>0.046649 - 0.106977</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">7.30%</td>
+<td style="text-align:right">8.70%</td>
+<td style="text-align:right">2.83%</td>
+<td style="text-align:right">0.28</td>
+</tr>
+<tr>
+<td style="text-align:right">20</td>
+<td>0.106978 - 0.136739</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">9.96%</td>
+<td style="text-align:right">12.22%</td>
+<td style="text-align:right">3.87%</td>
+<td style="text-align:right">0.39</td>
+</tr>
+<tr>
+<td style="text-align:right">30</td>
+<td>0.136763 - 0.161326</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">13.84%</td>
+<td style="text-align:right">14.93%</td>
+<td style="text-align:right">5.37%</td>
+<td style="text-align:right">0.54</td>
+</tr>
+<tr>
+<td style="text-align:right">40</td>
+<td>0.161346 - 0.185423</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">17.57%</td>
+<td style="text-align:right">17.32%</td>
+<td style="text-align:right">6.82%</td>
+<td style="text-align:right">0.68</td>
+</tr>
+<tr>
+<td style="text-align:right">50</td>
+<td>0.185433 - 0.211802</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">19.16%</td>
+<td style="text-align:right">19.86%</td>
+<td style="text-align:right">7.44%</td>
+<td style="text-align:right">0.74</td>
+</tr>
+<tr>
+<td style="text-align:right">60</td>
+<td>0.211849 - 0.242354</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">20.91%</td>
+<td style="text-align:right">22.67%</td>
+<td style="text-align:right">8.12%</td>
+<td style="text-align:right">0.81</td>
+</tr>
+<tr>
+<td style="text-align:right">70</td>
+<td>0.242359 - 0.277792</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">28.59%</td>
+<td style="text-align:right">25.97%</td>
+<td style="text-align:right">11.10%</td>
+<td style="text-align:right">1.11</td>
+</tr>
+<tr>
+<td style="text-align:right">80</td>
+<td>0.277802 - 0.325729</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">35.36%</td>
+<td style="text-align:right">30.06%</td>
+<td style="text-align:right">13.73%</td>
+<td style="text-align:right">1.37</td>
+</tr>
+<tr>
+<td style="text-align:right">90</td>
+<td>0.325758 - 0.401602</td>
+<td style="text-align:right">1,315</td>
+<td style="text-align:right">9.997%</td>
+<td style="text-align:right">41.67%</td>
+<td style="text-align:right">36.01%</td>
+<td style="text-align:right">16.18%</td>
+<td style="text-align:right">1.62</td>
+</tr>
+<tr>
+<td style="text-align:right">100</td>
+<td>0.401634 - 0.751333</td>
+<td style="text-align:right">1,319</td>
+<td style="text-align:right">10.027%</td>
+<td style="text-align:right">63.00%</td>
+<td style="text-align:right">48.15%</td>
+<td style="text-align:right">24.54%</td>
+<td style="text-align:right">2.45</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h3 id="c1-8-2-分箱排序结论">8.2 分箱排序结论</h3>
+<p>从 OOT 十等分表现看，模型分箱具有明显单调性：</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>观察点</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标率排序</td>
+<td>从低分箱到高分箱，平均目标率由 7.30% 上升至 63.00%，排序非常清晰。</td>
+</tr>
+<tr>
+<td>Lift 表现</td>
+<td>最高分箱 Lift 达到 2.45，说明高分箱捕获目标样本能力明显强于平均水平。</td>
+</tr>
+<tr>
+<td>Capture Rate</td>
+<td>最高 10% 样本捕获 24.54% 的目标样本，头部集中度较好。</td>
+</tr>
+<tr>
+<td>中高分箱跃升</td>
+<td>从 70 分箱开始，目标率明显抬升，说明模型对高目标客群有较强识别能力。</td>
+</tr>
+</tbody>
+</table>
+<p>整体来看，模型分数具有良好的业务排序性，可用于资质分层、策略分组和差异化资源配置。</p>
+<hr/>
+<h2 id="c1-9-业务解释">9. 业务解释</h2>
+<h3 id="c1-9-1-模型识别的高资质用户特征">9.1 模型识别的高资质用户特征</h3>
+<p>结合变量重要性和分箱表现，高资质用户通常具备以下特征：</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>方向</th>
+<th>特征表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收入能力强</td>
+<td>工资收入总额较高，近期收入均值较高。</td>
+</tr>
+<tr>
+<td>现金流稳定</td>
+<td>账户资金流动更稳定，余额波动相对可控。</td>
+</tr>
+<tr>
+<td>支出结构健康</td>
+<td>债务支出压力相对可控，异常转账和资金周转压力较低。</td>
+</tr>
+<tr>
+<td>外部负债适中</td>
+<td>BNPL、贷款还款等负债行为不会过度集中。</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h3 id="c1-9-2-模型识别的低资质用户特征">9.2 模型识别的低资质用户特征</h3>
+<p>低资质用户通常在以下方面表现较弱：</p>
+<table class="data-table">
+<thead>
+<tr>
+<th>方向</th>
+<th>特征表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收入能力不足</td>
+<td>工资收入或近期收入水平偏低。</td>
+</tr>
+<tr>
+<td>现金流压力较大</td>
+<td>借方金额、转账占比、余额波动等指标显示资金流动压力较大。</td>
+</tr>
+<tr>
+<td>负债行为偏重</td>
+<td>BNPL 还款、贷款还款、债务支出等变量表现出更高的负债压力。</td>
+</tr>
+<tr>
+<td>资金稳定性弱</td>
+<td>余额波动较大，账户资金留存能力不足。</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="chapter-card" id="chapter-3">
+<div class="chapter-kicker">Chapter 03</div>
+<div class="chapter-title-row">
+<h2>资质分箱画像</h2>
+<span>Source · 粘贴的 markdown (3)。md</span>
+</div>
+<div class="markdown-body">
+<h1 id="c3-资质模型分箱画像分析报告">资质模型分箱画像分析报告</h1>
+<blockquote>
+<p>基于 <code>model_bin_feature_mean_profile.xlsx</code> 与 <code>model_bin_user_profile_pivot.xlsx</code>。本报告只保留有整体趋势或关键交叉差异支撑的画像；波动较大或存在明显缺失污染的特征不作为核心画像依据。</p>
+</blockquote>
+<h2 id="c3-1-数据结构说明">1. 数据结构说明</h2>
+<h3 id="c3-1-1-sheet结构">1.1 Sheet结构</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">文件</th>
+<th style="text-align:left">Sheet</th>
+<th style="text-align:left">内容</th>
+<th style="text-align:left">画像用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">model_bin_feature_mean_profile.xlsx</td>
+<td style="text-align:left">cross_bin_distribution</td>
+<td style="text-align:left">104个银行流水/收入/支出/余额/信贷类特征的交叉分箱均值</td>
+<td style="text-align:left">用于看资质分箱1→5趋势、风险分箱1→5趋势、以及交叉错配人群差异</td>
+</tr>
+<tr>
+<td style="text-align:left">model_bin_user_profile_pivot.xlsx</td>
+<td style="text-align:left">basic_profile</td>
+<td style="text-align:left">avg_age、avg_dependents等基础指标交叉均值</td>
+<td style="text-align:left">基础人群画像</td>
+</tr>
+<tr>
+<td style="text-align:left">model_bin_user_profile_pivot.xlsx</td>
+<td style="text-align:left">geo_profile_distribution</td>
+<td style="text-align:left">state、suburb的cnt/pct分布</td>
+<td style="text-align:left">地域分布，主要用于描述，不直接等同风险/资质原因</td>
+</tr>
+<tr>
+<td style="text-align:left">model_bin_user_profile_pivot.xlsx</td>
+<td style="text-align:left">family_profile_distribution</td>
+<td style="text-align:left">single/couple/Missing的cnt/pct分布</td>
+<td style="text-align:left">家庭结构画像</td>
+</tr>
+<tr>
+<td style="text-align:left">model_bin_user_profile_pivot.xlsx</td>
+<td style="text-align:left">attributed_category_distributio</td>
+<td style="text-align:left">Google、Organic、Lead Partner、Owned Channels等渠道分布</td>
+<td style="text-align:left">渠道来源画像，注意渠道样本结构差异</td>
+</tr>
+<tr>
+<td style="text-align:left">model_bin_user_profile_pivot.xlsx</td>
+<td style="text-align:left">occupation_profile</td>
+<td style="text-align:left">行业金额、发薪周期、雇主集中度、雇主数量等交叉均值</td>
+<td style="text-align:left">职业/收入稳定性画像</td>
+</tr>
+<tr>
+<td style="text-align:left">model_bin_user_profile_pivot.xlsx</td>
+<td style="text-align:left">occupation_profile_distribution</td>
+<td style="text-align:left">行业/雇主的cnt/pct分布</td>
+<td style="text-align:left">职业行业结构与缺失覆盖情况</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c3-1-2-行列方向识别与数据处理口径">1.2 行列方向识别与数据处理口径</h3>
+<ul>
+<li>从单维画像表看，<code>primary_model_score_bin</code> 行为资质模型分箱；在交叉均值表中，行方向同样按资质分箱 1→5 理解，列标题 <code>primary_model_score_manual_bin</code> 按风险分箱 1→5 理解。</li>
+<li>本报告默认：资质 Bin 越大资质越差；风险 Bin 越大风险越高。</li>
+<li>已剔除模型分箱 <code>-1</code>、<code>&lt;NA&gt;</code> 和 <code>Total</code>；其中 <code>Total</code> 在部分特征中被 <code>-1000000</code> 等缺失填充值污染，不直接用于结论。</li>
+<li>对数值特征，明显缺失填充值如 <code>-1000000</code>、<code>-1</code>、<code>&lt;NA&gt;</code> 已作为缺失处理；对 <code>Missing</code> 这类类别值，作为“数据覆盖/识别缺失”的画像维度保留，但不直接解释为真实职业或地域特征。</li>
+<li>交叉特征缺少每个格子的有效样本数，因此“1/2均值”“4/5均值”和错配人群均值使用清洗后的可用格子均值，适合作画像方向判断，不建议直接当作加权总体口径。</li>
+</ul>
+<h3 id="c3-1-3-缺失和异常值提醒">1.3 缺失和异常值提醒</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">问题</th>
+<th style="text-align:left">处理</th>
+<th style="text-align:left">影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>-1000000</code>、<code>-1</code>、<code>&lt;NA&gt;</code> 等填充值</td>
+<td style="text-align:left">作为缺失值剔除</td>
+<td style="text-align:left">部分原始Total列/行被污染，不能直接解读。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>Missing</code> 类别</td>
+<td style="text-align:left">作为类别分布保留</td>
+<td style="text-align:left">更多代表职业/行业/地域识别覆盖情况，不等于真实业务属性。</td>
+</tr>
+<tr>
+<td style="text-align:left">地域、渠道、职业分布</td>
+<td style="text-align:left">只做结构画像</td>
+<td style="text-align:left">不把样本占比差异直接解释为风险或资质因果。</td>
+</tr>
+<tr>
+<td style="text-align:left">余额均值/最小值等存在负数</td>
+<td style="text-align:left">谨慎解读，仅使用趋势更清晰且业务含义更稳定的余额波动、异常天数等指标</td>
+<td style="text-align:left">不把负余额均值直接作为核心画像标签。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c3-2-核心结论摘要">2. 核心结论摘要</h2>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">人群</th>
+<th style="text-align:left">核心画像</th>
+<th style="text-align:left">主要支撑特征</th>
+<th style="text-align:left">业务解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">资质好（Bin 1/2）</td>
+<td style="text-align:left">高工资/高收入、主行业入账高、工资入账更连续、Centrelink占比低、伴侣/稳定渠道占比更高</td>
+<td style="text-align:left">工资收入、总收入、工资次数、主行业入账金额、Centrelink占比、single/couple、Lead Partner/Owned Channels</td>
+<td style="text-align:left">资质好主要由收入体量、工资连续性和职业/渠道稳定性解释，不是单一某个格子的异常。</td>
+</tr>
+<tr>
+<td style="text-align:left">资质差（Bin 4/5）</td>
+<td style="text-align:left">收入低、工资频次低、发薪周期波动高、Centrelink占比高、single占比高、行业Missing占比高</td>
+<td style="text-align:left">工资收入、总收入、工资次数、发薪周期std、Centrelink占比、single、行业Missing</td>
+<td style="text-align:left">资质差更像“收入和可识别职业现金流弱”，当前数据不支持简单归因为负债更重或多头更多。</td>
+</tr>
+<tr>
+<td style="text-align:left">资质好 &amp; 风险差</td>
+<td style="text-align:left">收入/资金体量不错，但支出、赌博、余额波动、收入波动更高</td>
+<td style="text-align:left">总收入、工资收入、总支出、赌博金额/占比、余额std、余额异常天数、收入CV</td>
+<td style="text-align:left">这是典型错配：资质好体现在收入端，风险差更多体现在资金波动、消费风险偏好和账户异常。</td>
+</tr>
+<tr>
+<td style="text-align:left">资质差 &amp; 风险好</td>
+<td style="text-align:left">收入一般/偏低，但支出更保守、赌博低、余额波动较小、还款活动相对更好</td>
+<td style="text-align:left">工资收入、总收入、总支出、赌博占比、余额std、信贷还款金额/次数</td>
+<td style="text-align:left">风险好不是因为高收入，而可能来自低支出、低波动、较保守行为和更可控的还款表现。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c3-3-资质好人群画像">3. 资质好人群画像</h2>
+<h3 id="c3-3-1-结论">3.1 结论</h3>
+<p>资质好人群的核心画像是：<strong>工资/收入体量高、工资现金流更连续、职业主收入更强、Centrelink收入占比低、发薪周期更稳定、家庭/渠道结构相对更稳定</strong>。这些特征在资质 Bin 1→5 上呈现较稳定的整体趋势，能够解释“资质好”。</p>
+<h3 id="c3-3-2-数值特征支撑表">3.2 数值特征支撑表</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">特征</th>
+<th style="text-align:left">Bin1</th>
+<th style="text-align:left">Bin2</th>
+<th style="text-align:left">Bin3</th>
+<th style="text-align:left">Bin4</th>
+<th style="text-align:left">Bin5</th>
+<th style="text-align:left">1/2均值</th>
+<th style="text-align:left">4/5均值</th>
+<th style="text-align:left">方向</th>
+<th style="text-align:left">趋势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">工资收入总额</td>
+<td style="text-align:left">51,630</td>
+<td style="text-align:left">30,647</td>
+<td style="text-align:left">22,884</td>
+<td style="text-align:left">15,939</td>
+<td style="text-align:left">6,320</td>
+<td style="text-align:left">41,139</td>
+<td style="text-align:left">11,130</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">总收入金额</td>
+<td style="text-align:left">171,204</td>
+<td style="text-align:left">110,410</td>
+<td style="text-align:left">89,127</td>
+<td style="text-align:left">72,545</td>
+<td style="text-align:left">46,997</td>
+<td style="text-align:left">140,807</td>
+<td style="text-align:left">59,771</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">工资入账次数</td>
+<td style="text-align:left">22.8</td>
+<td style="text-align:left">18.2</td>
+<td style="text-align:left">16.0</td>
+<td style="text-align:left">13.3</td>
+<td style="text-align:left">7.24</td>
+<td style="text-align:left">20.5</td>
+<td style="text-align:left">10.6</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">Centrelink收入占比</td>
+<td style="text-align:left">1.5%</td>
+<td style="text-align:left">2.7%</td>
+<td style="text-align:left">5.1%</td>
+<td style="text-align:left">10.9%</td>
+<td style="text-align:left">32.9%</td>
+<td style="text-align:left">2.1%</td>
+<td style="text-align:left">14.6%</td>
+<td style="text-align:left">随资质变差上升</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">主行业入账金额</td>
+<td style="text-align:left">49,806</td>
+<td style="text-align:left">32,026</td>
+<td style="text-align:left">25,788</td>
+<td style="text-align:left">20,026</td>
+<td style="text-align:left">12,107</td>
+<td style="text-align:left">40,916</td>
+<td style="text-align:left">16,067</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">发薪周期标准差</td>
+<td style="text-align:left">2.69</td>
+<td style="text-align:left">2.75</td>
+<td style="text-align:left">2.76</td>
+<td style="text-align:left">3.18</td>
+<td style="text-align:left">4.39</td>
+<td style="text-align:left">2.72</td>
+<td style="text-align:left">3.79</td>
+<td style="text-align:left">随资质变差上升</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">总支出金额</td>
+<td style="text-align:left">170,486</td>
+<td style="text-align:left">108,943</td>
+<td style="text-align:left">87,763</td>
+<td style="text-align:left">71,286</td>
+<td style="text-align:left">45,920</td>
+<td style="text-align:left">139,715</td>
+<td style="text-align:left">58,603</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">信贷还款金额</td>
+<td style="text-align:left">24,602</td>
+<td style="text-align:left">16,276</td>
+<td style="text-align:left">12,348</td>
+<td style="text-align:left">8,081</td>
+<td style="text-align:left">3,845</td>
+<td style="text-align:left">20,439</td>
+<td style="text-align:left">5,963</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">贷款还款次数</td>
+<td style="text-align:left">31.5</td>
+<td style="text-align:left">27.4</td>
+<td style="text-align:left">23.9</td>
+<td style="text-align:left">17.2</td>
+<td style="text-align:left">9.85</td>
+<td style="text-align:left">29.4</td>
+<td style="text-align:left">13.5</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">平均年龄</td>
+<td style="text-align:left">38.4</td>
+<td style="text-align:left">36.8</td>
+<td style="text-align:left">36.2</td>
+<td style="text-align:left">35.7</td>
+<td style="text-align:left">34.9</td>
+<td style="text-align:left">37.6</td>
+<td style="text-align:left">35.3</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c3-3-3-基础-渠道-职业分布支撑表">3.3 基础/渠道/职业分布支撑表</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">画像维度</th>
+<th style="text-align:left">Bin1</th>
+<th style="text-align:left">Bin2</th>
+<th style="text-align:left">Bin3</th>
+<th style="text-align:left">Bin4</th>
+<th style="text-align:left">Bin5</th>
+<th style="text-align:left">1/2均值</th>
+<th style="text-align:left">4/5均值</th>
+<th style="text-align:left">方向</th>
+<th style="text-align:left">趋势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">家庭类型：single</td>
+<td style="text-align:left">53.1%</td>
+<td style="text-align:left">59.2%</td>
+<td style="text-align:left">61.9%</td>
+<td style="text-align:left">65.9%</td>
+<td style="text-align:left">76.0%</td>
+<td style="text-align:left">56.2%</td>
+<td style="text-align:left">70.9%</td>
+<td style="text-align:left">随资质变差上升</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">家庭类型：couple</td>
+<td style="text-align:left">46.9%</td>
+<td style="text-align:left">40.8%</td>
+<td style="text-align:left">38.1%</td>
+<td style="text-align:left">34.1%</td>
+<td style="text-align:left">24.0%</td>
+<td style="text-align:left">43.8%</td>
+<td style="text-align:left">29.1%</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">渠道：Google</td>
+<td style="text-align:left">48.7%</td>
+<td style="text-align:left">50.1%</td>
+<td style="text-align:left">50.8%</td>
+<td style="text-align:left">53.6%</td>
+<td style="text-align:left">61.2%</td>
+<td style="text-align:left">49.4%</td>
+<td style="text-align:left">57.4%</td>
+<td style="text-align:left">随资质变差上升</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">渠道：Organic</td>
+<td style="text-align:left">17.1%</td>
+<td style="text-align:left">18.2%</td>
+<td style="text-align:left">19.9%</td>
+<td style="text-align:left">21.1%</td>
+<td style="text-align:left">21.9%</td>
+<td style="text-align:left">17.7%</td>
+<td style="text-align:left">21.5%</td>
+<td style="text-align:left">随资质变差上升</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">渠道：Lead Partner</td>
+<td style="text-align:left">19.8%</td>
+<td style="text-align:left">18.9%</td>
+<td style="text-align:left">17.6%</td>
+<td style="text-align:left">15.1%</td>
+<td style="text-align:left">8.2%</td>
+<td style="text-align:left">19.3%</td>
+<td style="text-align:left">11.6%</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">渠道：Owned Channels</td>
+<td style="text-align:left">12.6%</td>
+<td style="text-align:left">11.1%</td>
+<td style="text-align:left">10.1%</td>
+<td style="text-align:left">8.7%</td>
+<td style="text-align:left">7.2%</td>
+<td style="text-align:left">11.8%</td>
+<td style="text-align:left">7.9%</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">行业：Missing</td>
+<td style="text-align:left">1.4%</td>
+<td style="text-align:left">5.6%</td>
+<td style="text-align:left">10.1%</td>
+<td style="text-align:left">17.1%</td>
+<td style="text-align:left">44.3%</td>
+<td style="text-align:left">3.5%</td>
+<td style="text-align:left">30.7%</td>
+<td style="text-align:left">随资质变差上升</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">行业：Government/Public Administration</td>
+<td style="text-align:left">8.7%</td>
+<td style="text-align:left">7.5%</td>
+<td style="text-align:left">6.7%</td>
+<td style="text-align:left">5.7%</td>
+<td style="text-align:left">3.5%</td>
+<td style="text-align:left">8.1%</td>
+<td style="text-align:left">4.6%</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">行业：Construction</td>
+<td style="text-align:left">6.6%</td>
+<td style="text-align:left">5.7%</td>
+<td style="text-align:left">5.2%</td>
+<td style="text-align:left">4.7%</td>
+<td style="text-align:left">2.7%</td>
+<td style="text-align:left">6.1%</td>
+<td style="text-align:left">3.7%</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+<tr>
+<td style="text-align:left">行业：Health Care/Social Assistance</td>
+<td style="text-align:left">4.6%</td>
+<td style="text-align:left">3.9%</td>
+<td style="text-align:left">3.6%</td>
+<td style="text-align:left">3.1%</td>
+<td style="text-align:left">1.7%</td>
+<td style="text-align:left">4.2%</td>
+<td style="text-align:left">2.4%</td>
+<td style="text-align:left">随资质变差下降</td>
+<td style="text-align:left">稳定</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c3-3-4-业务解释">3.4 业务解释</h3>
+<ul>
+<li>资质好不是单纯“风险低”，而是收入端和现金流端更强：工资收入总额、总收入金额、工资入账次数、主行业入账金额均随资质变差明显下降。</li>
+<li>资质好人群的收入结构更偏工资/主业，Centrelink占比低；资质差人群的Centrelink占比随分箱变差显著上升。</li>
+<li>家庭和渠道结构上，资质好人群中 couple、Lead Partner、Owned Channels 占比更高；资质差人群 single、Google、Organic 占比更高。该部分是结构画像，不直接作为风险因果。</li>
+</ul>
+<h2 id="c3-4-资质差人群画像">4. 资质差人群画像</h2>
+<h3 id="c3-4-1-结论">4.1 结论</h3>
+<p>资质差人群相对资质好人群，主要短板集中在：<strong>收入更低、工资入账更少、主行业入账弱、发薪周期更不稳定、Centrelink收入占比更高、职业/行业信息Missing占比更高</strong>。<br/>
+但从当前文件看，不能简单下结论说“资质差=负债更重/多头更多”。信贷还款金额、还款次数、信贷放款金额等反而随资质变差下降，更像整体资金体量和信贷活动规模较低。</p>
+<h3 id="c3-4-2-资质好-vs-资质差对比表">4.2 资质好 vs 资质差对比表</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">特征</th>
+<th style="text-align:left">资质好(1/2)</th>
+<th style="text-align:left">资质差(4/5)</th>
+<th style="text-align:left">风险好(1/2)</th>
+<th style="text-align:left">风险差(4/5)</th>
+<th style="text-align:left">差异方向</th>
+<th style="text-align:left">趋势稳定</th>
+<th style="text-align:left">画像解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">工资收入总额</td>
+<td style="text-align:left">41,139</td>
+<td style="text-align:left">11,130</td>
+<td style="text-align:left">20,922</td>
+<td style="text-align:left">30,752</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差的工资收入明显更低，是核心短板。</td>
+</tr>
+<tr>
+<td style="text-align:left">总收入金额</td>
+<td style="text-align:left">140,807</td>
+<td style="text-align:left">59,771</td>
+<td style="text-align:left">70,151</td>
+<td style="text-align:left">129,605</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差整体收入体量更低。</td>
+</tr>
+<tr>
+<td style="text-align:left">工资入账次数</td>
+<td style="text-align:left">20.5</td>
+<td style="text-align:left">10.6</td>
+<td style="text-align:left">13.7</td>
+<td style="text-align:left">18.4</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差工资入账频次更低，现金流连续性较弱。</td>
+</tr>
+<tr>
+<td style="text-align:left">Centrelink收入占比</td>
+<td style="text-align:left">2.1%</td>
+<td style="text-align:left">14.6%</td>
+<td style="text-align:left">10.2%</td>
+<td style="text-align:left">3.1%</td>
+<td style="text-align:left">资质差更高</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差对福利/补贴类收入依赖更高。</td>
+</tr>
+<tr>
+<td style="text-align:left">主行业入账金额</td>
+<td style="text-align:left">40,916</td>
+<td style="text-align:left">16,067</td>
+<td style="text-align:left">24,203</td>
+<td style="text-align:left">32,476</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">职业/行业主收入金额随资质变差显著下降。</td>
+</tr>
+<tr>
+<td style="text-align:left">发薪周期标准差</td>
+<td style="text-align:left">2.72</td>
+<td style="text-align:left">3.79</td>
+<td style="text-align:left">2.99</td>
+<td style="text-align:left">3.35</td>
+<td style="text-align:left">资质差更高</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差发薪周期波动更大。</td>
+</tr>
+<tr>
+<td style="text-align:left">总支出金额</td>
+<td style="text-align:left">139,715</td>
+<td style="text-align:left">58,603</td>
+<td style="text-align:left">66,684</td>
+<td style="text-align:left">130,683</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差支出金额也更低，说明不是单纯高消费，而是整体资金体量低。</td>
+</tr>
+<tr>
+<td style="text-align:left">赌博支出占比</td>
+<td style="text-align:left">3.8%</td>
+<td style="text-align:left">2.2%</td>
+<td style="text-align:left">2.0%</td>
+<td style="text-align:left">4.7%</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差占比并不更高，不作为资质差核心画像。</td>
+</tr>
+<tr>
+<td style="text-align:left">余额波动标准差</td>
+<td style="text-align:left">6,360</td>
+<td style="text-align:left">824.9</td>
+<td style="text-align:left">2,688</td>
+<td style="text-align:left">4,757</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质好余额波动更大，更多体现资金体量差异，不能直接解释为风险差。</td>
+</tr>
+<tr>
+<td style="text-align:left">信贷还款金额</td>
+<td style="text-align:left">20,439</td>
+<td style="text-align:left">5,963</td>
+<td style="text-align:left">15,780</td>
+<td style="text-align:left">10,305</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差信贷还款金额更低，不支持“资质差=负债更重”。</td>
+</tr>
+<tr>
+<td style="text-align:left">贷款还款次数</td>
+<td style="text-align:left">29.4</td>
+<td style="text-align:left">13.5</td>
+<td style="text-align:left">25.3</td>
+<td style="text-align:left">18.2</td>
+<td style="text-align:left">资质差更低</td>
+<td style="text-align:left">是</td>
+<td style="text-align:left">资质差还款次数更低，不支持“资质差=多头更多”。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c3-4-3-业务解释">4.3 业务解释</h3>
+<ul>
+<li>资质差的核心不是单点异常，而是多个收入和现金流指标同步走弱。</li>
+<li>当前数据支持“收入低、工资频次低、发薪不稳定、行业识别缺失高”的画像。</li>
+<li>当前数据不支持把资质差直接解释为“高负债/高多头”。如果后续需要验证负债压力，需要增加额度、负债余额、授信使用率、还款失败、逾期历史等更直接指标。</li>
+</ul>
+<h2 id="c3-5-资质好但风险差人群画像">5. 资质好但风险差人群画像</h2>
+<h3 id="c3-5-1-结论">5.1 结论</h3>
+<p>这类人群的“好”主要体现在收入和资金体量仍然较高；“风险差”更多体现在：<strong>支出金额更高、赌博相关支出更高、余额波动更大、余额异常天数更多、收入波动更高</strong>。<br/>
+因此，这类人可以概括为：<strong>收入不错但资金波动大、消费/赌博风险偏好更高、账户行为更不稳定</strong>。</p>
+<h3 id="c3-5-2-与资质好-风险好-资质差-风险差对比表">5.2 与资质好&amp;风险好、资质差&amp;风险差对比表</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">特征</th>
+<th style="text-align:left">资质好&amp;风险好</th>
+<th style="text-align:left">资质好&amp;风险差</th>
+<th style="text-align:left">资质差&amp;风险差</th>
+<th style="text-align:left">风险差异方向</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">工资收入总额</td>
+<td style="text-align:left">34,024</td>
+<td style="text-align:left">50,253</td>
+<td style="text-align:left">13,314</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">仍然具备高工资收入，且风险差组收入更高。</td>
+</tr>
+<tr>
+<td style="text-align:left">总收入金额</td>
+<td style="text-align:left">96,943</td>
+<td style="text-align:left">191,383</td>
+<td style="text-align:left">75,316</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">整体入账/收入体量明显高于风险好组。</td>
+</tr>
+<tr>
+<td style="text-align:left">总支出金额</td>
+<td style="text-align:left">92,348</td>
+<td style="text-align:left">193,711</td>
+<td style="text-align:left">75,496</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">支出金额同步放大，说明资金进出都更活跃。</td>
+</tr>
+<tr>
+<td style="text-align:left">赌博支出占比</td>
+<td style="text-align:left">2.5%</td>
+<td style="text-align:left">5.2%</td>
+<td style="text-align:left">3.7%</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">风险差组占比更高，是风险错配的重要解释。</td>
+</tr>
+<tr>
+<td style="text-align:left">赌博支出金额</td>
+<td style="text-align:left">2,398</td>
+<td style="text-align:left">7,416</td>
+<td style="text-align:left">2,067</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">风险差组金额明显更高，支持高消费/高风险偏好画像。</td>
+</tr>
+<tr>
+<td style="text-align:left">余额波动标准差</td>
+<td style="text-align:left">4,947</td>
+<td style="text-align:left">8,442</td>
+<td style="text-align:left">1,181</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">风险差组余额波动更大。</td>
+</tr>
+<tr>
+<td style="text-align:left">余额异常天数</td>
+<td style="text-align:left">3.82</td>
+<td style="text-align:left">5.13</td>
+<td style="text-align:left">5.22</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">风险差组异常天数更多。</td>
+</tr>
+<tr>
+<td style="text-align:left">收入波动CV</td>
+<td style="text-align:left">1.83</td>
+<td style="text-align:left">2.10</td>
+<td style="text-align:left">1.96</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">风险差组收入波动更高。</td>
+</tr>
+<tr>
+<td style="text-align:left">发薪周期标准差</td>
+<td style="text-align:left">2.50</td>
+<td style="text-align:left">2.90</td>
+<td style="text-align:left">4.01</td>
+<td style="text-align:left">资质好中风险差更高</td>
+<td style="text-align:left">风险差组发薪周期波动略高，但不是最强解释。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c3-5-3-错配原因解释">5.3 错配原因解释</h3>
+<ul>
+<li><strong>好在哪里</strong>：资质好&amp;风险差人群的工资收入、总收入仍显著高于资质差&amp;风险差，也高于资质好&amp;风险好，说明收入/资质端并不弱。</li>
+<li><strong>风险差在哪里</strong>：同在资质好分箱内，风险差组的总支出、赌博金额、赌博占比、余额波动、余额异常天数和收入波动都更高。</li>
+<li><strong>错配画像</strong>：当前数据更支持“高收入/高资金体量 + 高支出/高波动/高风险消费”的解释，而不是简单“收入差导致风险差”。</li>
+</ul>
+<h2 id="c3-6-资质差但风险好人群画像">6. 资质差但风险好人群画像</h2>
+<h3 id="c3-6-1-结论">6.1 结论</h3>
+<p>这类人群的“资质差”体现为收入低、工资现金流弱、Centrelink占比高；但“风险好”体现为：<strong>支出更低、赌博更低、余额波动更小、余额异常天数更少，且信贷还款活动相对资质差&amp;风险差更好</strong>。<br/>
+可以概括为：<strong>收入不高但行为保守、支出压力相对低、账户波动较小、风险可控</strong>。</p>
+<h3 id="c3-6-2-与资质差-风险差-资质好-风险好对比表">6.2 与资质差&amp;风险差、资质好&amp;风险好对比表</h3>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">特征</th>
+<th style="text-align:left">资质差&amp;风险好</th>
+<th style="text-align:left">资质差&amp;风险差</th>
+<th style="text-align:left">资质好&amp;风险好</th>
+<th style="text-align:left">风险差异方向</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">工资收入总额</td>
+<td style="text-align:left">8,750</td>
+<td style="text-align:left">13,314</td>
+<td style="text-align:left">34,024</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">收入仍明显低于资质好&amp;风险好，是资质短板。</td>
+</tr>
+<tr>
+<td style="text-align:left">总收入金额</td>
+<td style="text-align:left">45,568</td>
+<td style="text-align:left">75,316</td>
+<td style="text-align:left">96,943</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">收入体量低于资质好&amp;风险好；但高于资质差&amp;风险差。</td>
+</tr>
+<tr>
+<td style="text-align:left">Centrelink收入占比</td>
+<td style="text-align:left">22.1%</td>
+<td style="text-align:left">5.9%</td>
+<td style="text-align:left">2.7%</td>
+<td style="text-align:left">资质差中风险好更高</td>
+<td style="text-align:left">风险好组占比更高，说明收入结构偏保守/福利类，不等于高资质。</td>
+</tr>
+<tr>
+<td style="text-align:left">总支出金额</td>
+<td style="text-align:left">43,062</td>
+<td style="text-align:left">75,496</td>
+<td style="text-align:left">92,348</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">明显低于资质差&amp;风险差，支出更保守。</td>
+</tr>
+<tr>
+<td style="text-align:left">赌博支出占比</td>
+<td style="text-align:left">1.3%</td>
+<td style="text-align:left">3.7%</td>
+<td style="text-align:left">2.5%</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">低于资质差&amp;风险差，风险偏好更低。</td>
+</tr>
+<tr>
+<td style="text-align:left">赌博支出金额</td>
+<td style="text-align:left">531.7</td>
+<td style="text-align:left">2,067</td>
+<td style="text-align:left">2,398</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">明显低于资质差&amp;风险差。</td>
+</tr>
+<tr>
+<td style="text-align:left">余额波动标准差</td>
+<td style="text-align:left">478.1</td>
+<td style="text-align:left">1,181</td>
+<td style="text-align:left">4,947</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">低于资质差&amp;风险差，账户波动更小。</td>
+</tr>
+<tr>
+<td style="text-align:left">余额异常天数</td>
+<td style="text-align:left">3.45</td>
+<td style="text-align:left">5.22</td>
+<td style="text-align:left">3.82</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">低于资质差&amp;风险差。</td>
+</tr>
+<tr>
+<td style="text-align:left">信贷还款金额</td>
+<td style="text-align:left">7,582</td>
+<td style="text-align:left">4,133</td>
+<td style="text-align:left">24,276</td>
+<td style="text-align:left">资质差中风险好更高</td>
+<td style="text-align:left">高于资质差&amp;风险差，可能体现仍有还款活动/信用履约能力。</td>
+</tr>
+<tr>
+<td style="text-align:left">贷款还款次数</td>
+<td style="text-align:left">15.9</td>
+<td style="text-align:left">10.8</td>
+<td style="text-align:left">34.0</td>
+<td style="text-align:left">资质差中风险好更高</td>
+<td style="text-align:left">高于资质差&amp;风险差，支持风险相对可控。</td>
+</tr>
+<tr>
+<td style="text-align:left">发薪周期标准差</td>
+<td style="text-align:left">3.67</td>
+<td style="text-align:left">4.01</td>
+<td style="text-align:left">2.50</td>
+<td style="text-align:left">资质差中风险好更低</td>
+<td style="text-align:left">略低于资质差&amp;风险差，但仍高于资质好&amp;风险好。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c3-6-3-错配原因解释">6.3 错配原因解释</h3>
+<ul>
+<li><strong>资质差体现在哪里</strong>：资质差&amp;风险好人群的工资收入和总收入明显低于资质好&amp;风险好，收入结构中Centrelink占比也更高。</li>
+<li><strong>风险好体现在哪里</strong>：相比资质差&amp;风险差，资质差&amp;风险好人群总支出更低、赌博支出和占比更低、余额波动和余额异常更低。</li>
+<li><strong>错配画像</strong>：这类人不是高收入客户，而是“低收入/弱资质但行为更克制、资金波动更低”的客群。后续可以单独观察其真实逾期率、额度使用率、续贷和贡献情况。</li>
+</ul>
+<h2 id="c3-7-可用于后续策略分析的启发">7. 可用于后续策略分析的启发</h2>
+<table class="data-table">
+<thead>
+<tr>
+<th style="text-align:left">方向</th>
+<th style="text-align:left">可重点关注特征</th>
+<th style="text-align:left">启发</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">解释资质好坏</td>
+<td style="text-align:left">工资收入总额、总收入金额、工资入账次数、主行业入账金额、Centrelink占比、发薪周期std、行业Missing</td>
+<td style="text-align:left">适合作为资质画像和可解释性说明，尤其是收入与工资连续性。</td>
+</tr>
+<tr>
+<td style="text-align:left">解释风险好坏</td>
+<td style="text-align:left">赌博支出占比/金额、余额波动std、余额异常天数、收入/支出CV、总支出金额</td>
+<td style="text-align:left">更适合解释同资质下的风险错配。</td>
+</tr>
+<tr>
+<td style="text-align:left">解释资质好但风险差</td>
+<td style="text-align:left">总收入、总支出、赌博占比/金额、余额波动、余额异常、收入CV</td>
+<td style="text-align:left">后续可单独评估“高收入但高波动/高消费风险偏好”客群。</td>
+</tr>
+<tr>
+<td style="text-align:left">解释资质差但风险好</td>
+<td style="text-align:left">低收入、低支出、低赌博、低余额波动、较好的还款活动</td>
+<td style="text-align:left">后续可评估是否存在保守型低收入客群，不宜只按资质差一刀切。</td>
+</tr>
+<tr>
+<td style="text-align:left">需要谨慎使用</td>
+<td style="text-align:left">地域、渠道、职业Missing、余额均值/最小值</td>
+<td style="text-align:left">更适合做结构补充或数据覆盖提示，不建议直接形成强策略结论。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c3-7-1-不建议直接下的结论">7.1 不建议直接下的结论</h3>
+<ul>
+<li>不建议直接说“资质差=高负债/高多头”，当前信贷还款金额、贷款还款次数等特征并未支持这个方向。</li>
+<li>不建议把地域、渠道、职业分布差异直接解释为风险或资质原因；这类指标需要结合样本量、获客结构和渠道准入策略一起看。</li>
+<li>不建议使用被缺失填充值污染的Total列直接下结论。</li>
+</ul>
+</div>
+</section>
+<div class="footer">© 2026 · Qualification Model Analysis HTML Report · Prepared for internal strategy review</div>
+</div>
+</section>
+</main>
+<script>
+    (function wrapTables() {
+      document.querySelectorAll('table.data-table').forEach((table) => {
+        if (table.parentElement && table.parentElement.classList.contains('table-frame')) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'table-frame';
+        table.parentNode.insertBefore(wrap, table);
+        wrap.appendChild(table);
+      });
+    })();
+
+    function parseNumber(text) {
+      if (!text) return NaN;
+      let t = text.trim();
+      if (!t || /^(NA|N\/A|Missing|<NA>|-|—|--|None|null)$/i.test(t)) return NaN;
+      t = t.replace(/,/g, '')
+           .replace(/%/g, '')
+           .replace(/pct/ig, '')
+           .replace(/[≈约]/g, '')
+           .replace(/\s+/g, '');
+      const match = t.match(/-?\d+(?:\.\d+)?/);
+      if (!match) return NaN;
+      return Number(match[0]);
+    }
+
+    function normalizeText(text) {
+      return (text || '').replace(/\s+/g, '').trim();
+    }
+
+    function isTotalText(text) {
+      const t = normalizeText(text);
+      return /^(合计|总计|小计|总览|Total|GrandTotal|Overall)$/i.test(t);
+    }
+
+    function inferHeatType(headerText, table) {
+      const h = normalizeText(headerText);
+      const tableText = normalizeText(table ? table.textContent.slice(0, 1200) : '');
+
+      // 风险表现：使用克制的高级红色。覆盖逾期率、M30/M5、bad rate、风险率等。
+      if (/(逾期|违约|风险率|坏账|BadRate|M30|M5|DPD|Overdue|Default|Delinq)/i.test(h)) {
+        return 'risk';
+      }
+
+      // 风险分箱列本身若出现在数值交叉表中，也使用红色系，避免和资质/经营类指标混在一起。
+      if (/(风险分箱|riskbin|risk_bin|riskbucket)/i.test(h)) {
+        return 'risk';
+      }
+
+      // 审批与转化，使用沉稳蓝色系。
+      if (/(通过率|自动通过率|人工通过率|成交率|审批|转化|pass|approve|approval|deal|conversion|成交|自动|人工)/i.test(h)) {
+        return 'approval';
+      }
+
+      // 样本分布，使用低饱和金色系。
+      if (/(样本|数量|样本数|样本量|目标样本|count|cnt|sample)/i.test(h)) {
+        return 'distribution';
+      }
+
+      // 经营价值、收入、额度、现金流、surplus 等，使用青绿色系。
+      if (/(收入|工资|金额|额度|申请金额|总额度|PTI|Surplus|gross|net|income|amount|limit|balance|cashflow|debit|credit|支出|还款|放款|客单价|均值|标准差|占比)/i.test(h)) {
+        return 'value';
+      }
+
+      // 模型效果指标，使用香槟金色系。
+      if (/(AUC|KS|Lift|IV|Capture|预测分|目标率|重要性|排名|分数区间|score)/i.test(h + tableText)) {
+        return 'model';
+      }
+
+      return 'neutral';
+    }
+
+    function getHeatColor(type, norm) {
+      const palettes = {
+        risk:         { rgb: [158, 54, 62],  min: 0.045, max: 0.300 },  // 高级红：风险、逾期、违约
+        value:        { rgb: [29, 125, 112], min: 0.035, max: 0.235 },  // 青绿：收入、额度、金额、surplus
+        approval:     { rgb: [55, 93, 141],  min: 0.035, max: 0.230 },  // 沉稳蓝：通过、自动、人工、成交
+        distribution: { rgb: [185, 135, 50], min: 0.035, max: 0.210 },  // 金色：样本数、样本占比
+        model:        { rgb: [198, 154, 70], min: 0.035, max: 0.225 },  // 香槟金：AUC、KS、Lift、IV
+        neutral:      { rgb: [73, 92, 116],  min: 0.030, max: 0.180 }   // 中性灰蓝：其他数值
+      };
+      const p = palettes[type] || palettes.neutral;
+      const alpha = p.min + norm * (p.max - p.min);
+      return `rgba(${p.rgb[0]}, ${p.rgb[1]}, ${p.rgb[2]}, ${alpha.toFixed(3)})`;
+    }
+
+    (function heatmapTables() {
+      document.querySelectorAll('table.data-table').forEach((table) => {
+        const body = table.tBodies[0];
+        if (!body) return;
+
+        const rows = Array.from(body.rows);
+        const head = table.tHead ? table.tHead.rows[0] : table.rows[0];
+        if (!head || rows.length < 2) return;
+
+        const colCount = head.cells.length;
+        const totalColumns = new Set();
+
+        Array.from(head.cells).forEach((cell, idx) => {
+          if (isTotalText(cell.textContent)) totalColumns.add(idx);
+        });
+
+        // 合计 / 总计 / Total 行不参与渐变计算，也不着色。
+        const eligibleRows = rows.filter((row) => {
+          const firstCell = row.cells[0];
+          return firstCell && !isTotalText(firstCell.textContent);
+        });
+
+        for (let c = 1; c < colCount; c++) {
+          if (totalColumns.has(c)) continue;
+
+          const headerText = head.cells[c] ? head.cells[c].textContent : '';
+          const heatType = inferHeatType(headerText, table);
+          const cells = eligibleRows.map(r => r.cells[c]).filter(Boolean);
+          const values = cells.map(cell => parseNumber(cell.textContent)).filter(Number.isFinite);
+
+          if (values.length < 3) continue;
+
+          const min = Math.min.apply(null, values);
+          const max = Math.max.apply(null, values);
+          if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) continue;
+
+          cells.forEach((cell) => {
+            const val = parseNumber(cell.textContent);
+            if (!Number.isFinite(val)) return;
+            const norm = Math.max(0, Math.min(1, (val - min) / (max - min)));
+
+            cell.classList.add('heat-cell');
+            cell.dataset.heatType = heatType;
+            cell.style.backgroundColor = getHeatColor(heatType, norm);
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
